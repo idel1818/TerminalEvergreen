@@ -5,19 +5,33 @@ const { gatherCompanyData } = require('../services/enrichment');
 const { generateConfig } = require('../services/claude');
 
 router.post('/configure', async (req, res) => {
-  try {
-    const { company_name, force_refresh } = req.body;
-    if (!company_name) return res.status(400).json({ error: 'company_name required' });
+  const { company_name, force_refresh } = req.body;
+  if (!company_name) return res.status(400).json({ error: 'company_name required' });
 
-    if (!force_refresh) {
-      const existing = db.prepare('SELECT * FROM workspaces WHERE company_name = ? COLLATE NOCASE ORDER BY updated_at DESC LIMIT 1').get(company_name);
-      if (existing) {
-        const config = JSON.parse(existing.config_json);
-        return res.json({ workspace: existing, config, cached: true });
-      }
+  // Cache check — return JSON immediately (no streaming needed)
+  if (!force_refresh) {
+    const existing = db.prepare('SELECT * FROM workspaces WHERE company_name = ? COLLATE NOCASE ORDER BY updated_at DESC LIMIT 1').get(company_name);
+    if (existing) {
+      const config = JSON.parse(existing.config_json);
+      return res.json({ workspace: existing, config, cached: true });
     }
+  }
 
+  // Long-running config: use SSE to keep connection alive
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  function sendEvent(data) {
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  }
+
+  try {
+    sendEvent({ step: 'enriching', message: 'Enriching with Clearbit...' });
     const companyData = await gatherCompanyData(company_name);
+    sendEvent({ step: 'enriched', message: 'Company data enriched' });
 
     let workspaceId;
     let isUpdate = false;
@@ -32,14 +46,25 @@ router.post('/configure', async (req, res) => {
         .run(companyData.domain, companyData.logo_url, workspaceId);
     }
 
+    sendEvent({ step: 'generating', message: 'Generating configuration with AI...' });
+
+    // Send keepalive pings every 15s during Claude generation
+    const keepAlive = setInterval(() => {
+      sendEvent({ step: 'generating', message: 'Still generating...' });
+    }, 15000);
+
     let config;
     try {
       config = await generateConfig(companyData);
     } catch (genErr) {
-      // If we haven't created a workspace row yet, just re-throw
-      // If we updated an existing one, that's fine — original data is preserved
-      throw genErr;
+      clearInterval(keepAlive);
+      sendEvent({ step: 'error', message: genErr.message });
+      res.end();
+      return;
     }
+    clearInterval(keepAlive);
+
+    sendEvent({ step: 'saving', message: 'Saving configuration...' });
 
     // Extract usage metadata before storing config
     const usage = config._usage;
@@ -77,7 +102,6 @@ router.post('/configure', async (req, res) => {
       insertMany(config.target_accounts);
     }
 
-    // Log API usage with the actual workspace ID now that it exists
     if (usage) {
       db.prepare('INSERT INTO api_usage (workspace_id, feature, input_tokens, output_tokens, estimated_cost_usd) VALUES (?, ?, ?, ?, ?)')
         .run(workspaceId, 'workspace_configure', usage.inputTokens, usage.outputTokens, usage.costUsd);
@@ -87,10 +111,12 @@ router.post('/configure', async (req, res) => {
       .run(workspaceId, isUpdate ? 'workspace_reconfigured' : 'workspace_configured', `Terminal ${isUpdate ? 'reconfigured' : 'configured'} for ${company_name}`);
 
     const workspace = db.prepare('SELECT * FROM workspaces WHERE id = ?').get(workspaceId);
-    res.json({ workspace, config, cached: false });
+    sendEvent({ step: 'done', workspace, config, cached: false });
+    res.end();
   } catch (err) {
     console.error('Configure error:', err);
-    res.status(500).json({ error: err.message });
+    sendEvent({ step: 'error', message: err.message });
+    res.end();
   }
 });
 

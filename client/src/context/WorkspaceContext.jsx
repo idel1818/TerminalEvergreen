@@ -20,27 +20,7 @@ export function WorkspaceProvider({ children }) {
 
   const configureCompany = useCallback(async (companyName, forceRefresh = false) => {
     setLoading(true);
-    setLoadingSteps([]);
-
-    const steps = [
-      'Searching company data...',
-      'Enriching with Clearbit...',
-      'Pulling recent news...',
-      'Generating competitors...',
-      'Building target accounts...',
-      'Configuring sales kit...',
-    ];
-
-    let stepIdx = 0;
-    const interval = setInterval(() => {
-      if (stepIdx < steps.length) {
-        setLoadingSteps(prev => [...prev, { text: steps[stepIdx], done: false }]);
-        if (stepIdx > 0) {
-          setLoadingSteps(prev => prev.map((s, i) => i === stepIdx - 1 ? { ...s, done: true } : s));
-        }
-        stepIdx++;
-      }
-    }, 1500);
+    setLoadingSteps([{ text: 'Searching company data...', done: false }]);
 
     try {
       const res = await fetch(`${API}/api/workspaces/configure`, {
@@ -48,24 +28,102 @@ export function WorkspaceProvider({ children }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ company_name: companyName, force_refresh: forceRefresh })
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Configuration failed');
+
+      const contentType = res.headers.get('content-type') || '';
+
+      // Cached result comes back as regular JSON
+      if (contentType.includes('application/json')) {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Configuration failed');
+        const steps = [
+          'Searching company data...',
+          'Enriching with Clearbit...',
+          'Pulling recent news...',
+          'Generating competitors...',
+          'Building target accounts...',
+          'Configuring sales kit...',
+          'Terminal ready.'
+        ];
+        setLoadingSteps(steps.map(t => ({ text: t, done: true })));
+        await new Promise(r => setTimeout(r, 400));
+        setWorkspace(data.workspace);
+        setConfig(data.config);
+        setLoading(false);
+        setLoadingSteps([]);
+        await fetchWorkspaces();
+        return data;
       }
-      const data = await res.json();
-      clearInterval(interval);
-      setLoadingSteps(steps.map(t => ({ text: t, done: true })));
-      setLoadingSteps(prev => [...prev, { text: 'Terminal ready.', done: true }]);
+
+      // SSE stream for long-running config
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let finalData = null;
+
+      const stepMap = {
+        enriching: 'Enriching with Clearbit...',
+        enriched: 'Pulling recent news...',
+        generating: 'Generating AI configuration...',
+        saving: 'Saving configuration...',
+      };
+
+      const completedSteps = new Set();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          let event;
+          try {
+            event = JSON.parse(line.slice(6));
+          } catch {
+            continue;
+          }
+
+          if (event.step === 'error') {
+            throw new Error(event.message || 'Configuration failed');
+          }
+
+          if (event.step === 'done') {
+            finalData = event;
+            continue;
+          }
+
+          // Update loading steps based on real server events
+          if (event.step && stepMap[event.step] && !completedSteps.has(event.step)) {
+            completedSteps.add(event.step);
+
+            setLoadingSteps(prev => {
+              const updated = prev.map(s => ({ ...s, done: true }));
+              return [...updated, { text: stepMap[event.step], done: false }];
+            });
+          }
+        }
+      }
+
+      if (!finalData) {
+        throw new Error('Connection closed before configuration completed');
+      }
+
+      setLoadingSteps(prev => {
+        const updated = prev.map(s => ({ ...s, done: true }));
+        return [...updated, { text: 'Terminal ready.', done: true }];
+      });
 
       await new Promise(r => setTimeout(r, 500));
-      setWorkspace(data.workspace);
-      setConfig(data.config);
+      setWorkspace(finalData.workspace);
+      setConfig(finalData.config);
       setLoading(false);
       setLoadingSteps([]);
       await fetchWorkspaces();
-      return data;
+      return finalData;
     } catch (err) {
-      clearInterval(interval);
       setLoading(false);
       setLoadingSteps([]);
       throw err;
