@@ -97,12 +97,17 @@ router.post('/upload/document', upload.single('file'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
     let content = '';
-    if (req.file.originalname.endsWith('.pdf') || req.file.mimetype === 'application/pdf') {
-      const dataBuffer = fs.readFileSync(req.file.path);
-      const pdfData = await pdfParse(dataBuffer);
-      content = pdfData.text;
-    } else {
-      content = fs.readFileSync(req.file.path, 'utf-8');
+    try {
+      if (req.file.originalname.endsWith('.pdf') || req.file.mimetype === 'application/pdf') {
+        const dataBuffer = fs.readFileSync(req.file.path);
+        const pdfData = await pdfParse(dataBuffer);
+        content = pdfData.text;
+      } else {
+        content = fs.readFileSync(req.file.path, 'utf-8');
+      }
+    } catch (parseErr) {
+      fs.unlink(req.file.path, () => {});
+      throw parseErr;
     }
 
     let extracted;

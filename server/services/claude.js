@@ -126,12 +126,12 @@ Generate the following in JSON format matching this exact schema:
 Generate 6 realistic competitors, 6 selling points across different buyer personas, 5 objections with responses, 20 target accounts with coordinates, 4 email templates for different verticals, 5 trigger events relevant to this company's market, and 3 ticker messages. Make everything specific to this company - not generic. Use your knowledge of the industry to generate accurate competitor names, realistic ICP criteria, and relevant proof points.`;
 }
 
-async function generateConfig(companyData, workspaceId) {
+async function generateConfig(companyData) {
   const userPrompt = buildUserPrompt(companyData);
 
   const message = await client.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8000,
+    max_tokens: 16000,
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: userPrompt }]
   });
@@ -140,9 +140,6 @@ async function generateConfig(companyData, workspaceId) {
   const inputTokens = message.usage.input_tokens;
   const outputTokens = message.usage.output_tokens;
   const costUsd = (inputTokens * 3 / 1000000) + (outputTokens * 15 / 1000000);
-
-  db.prepare(`INSERT INTO api_usage (workspace_id, feature, input_tokens, output_tokens, estimated_cost_usd) VALUES (?, ?, ?, ?, ?)`)
-    .run(workspaceId, 'workspace_configure', inputTokens, outputTokens, costUsd);
 
   let config;
   try {
@@ -157,6 +154,7 @@ async function generateConfig(companyData, workspaceId) {
     config.company.logo_url = companyData.logo_url;
   }
 
+  config._usage = { inputTokens, outputTokens, costUsd };
   return config;
 }
 

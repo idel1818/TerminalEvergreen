@@ -34,12 +34,16 @@ router.post('/configure', async (req, res) => {
 
     let config;
     try {
-      config = await generateConfig(companyData, workspaceId || 0);
+      config = await generateConfig(companyData);
     } catch (genErr) {
       // If we haven't created a workspace row yet, just re-throw
       // If we updated an existing one, that's fine — original data is preserved
       throw genErr;
     }
+
+    // Extract usage metadata before storing config
+    const usage = config._usage;
+    delete config._usage;
 
     // Only create the workspace row after config generation succeeds
     if (!existing) {
@@ -71,6 +75,12 @@ router.post('/configure', async (req, res) => {
         }
       });
       insertMany(config.target_accounts);
+    }
+
+    // Log API usage with the actual workspace ID now that it exists
+    if (usage) {
+      db.prepare('INSERT INTO api_usage (workspace_id, feature, input_tokens, output_tokens, estimated_cost_usd) VALUES (?, ?, ?, ?, ?)')
+        .run(workspaceId, 'workspace_configure', usage.inputTokens, usage.outputTokens, usage.costUsd);
     }
 
     db.prepare('INSERT INTO activities (workspace_id, type, description) VALUES (?, ?, ?)')
