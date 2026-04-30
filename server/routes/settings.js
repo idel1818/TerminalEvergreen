@@ -12,7 +12,7 @@ if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: uploadDir,
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_'))
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
@@ -105,7 +105,12 @@ router.post('/upload/document', upload.single('file'), async (req, res) => {
       content = fs.readFileSync(req.file.path, 'utf-8');
     }
 
-    const extracted = await extractDocument(content);
+    let extracted;
+    try {
+      extracted = await extractDocument(content);
+    } finally {
+      fs.unlink(req.file.path, () => {});
+    }
 
     const workspace = db.prepare('SELECT * FROM workspaces WHERE id = ?').get(req.params.id);
     if (workspace) {

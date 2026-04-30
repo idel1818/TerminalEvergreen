@@ -17,7 +17,7 @@ export default function SalesKitPage() {
     { id: 'selling_points', label: 'Selling Points', icon: Target },
     { id: 'roi', label: 'ROI Calculator', icon: Calculator },
     { id: 'objections', label: 'Objection Handler', icon: Shield },
-    { id: 'templates', label: 'Email Templates', icon: Mail },
+    { id: 'email_templates', label: 'Email Templates', icon: Mail },
   ];
 
   const saveEdit = async (section) => {
@@ -135,7 +135,7 @@ export default function SalesKitPage() {
         </div>
       )}
 
-      {tab === 'templates' && (
+      {tab === 'email_templates' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {(config?.email_templates || []).map((t, i) => (
             <div key={i} className="bg-[#131a2e] border border-[#1e293b] rounded-xl p-5">

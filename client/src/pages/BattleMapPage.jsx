@@ -120,7 +120,7 @@ export default function BattleMapPage() {
         if (!isDragging) {
           rotationVelocity.x *= 0.98;
           rotationVelocity.y *= 0.95;
-          rotationVelocity.x = Math.max(rotationVelocity.x, 0.001);
+          if (Math.abs(rotationVelocity.x) < 0.001) rotationVelocity.x = 0.001;
         }
         renderer.render(scene, camera);
       }
