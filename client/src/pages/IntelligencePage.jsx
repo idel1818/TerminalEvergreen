@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useWorkspace } from '../context/WorkspaceContext';
-import { Search, Rss, Users, Briefcase, ExternalLink } from 'lucide-react';
+import { Search, Rss, Users, Briefcase, ExternalLink, Brain, Loader2 } from 'lucide-react';
 
 export default function IntelligencePage() {
   const { workspace, config } = useWorkspace();
@@ -41,21 +41,31 @@ export default function IntelligencePage() {
   ];
 
   return (
-    <div className="p-6 space-y-6">
-      <h2 className="text-xl font-semibold text-white">Intelligence</h2>
+    <div className="p-6 space-y-5 max-w-[1400px] mx-auto">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+          <Brain size={14} className="text-blue-400" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold text-white">Intelligence</h2>
+          <p className="text-[11px] text-slate-600">Real-time signals from public sources</p>
+        </div>
+      </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 bg-[#0c1220] rounded-lg px-1 py-1 border border-[#162032] w-fit">
         {tabs.map(t => {
           const Icon = t.icon;
           return (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm border-none cursor-pointer transition-colors ${
-                tab === t.id ? 'bg-blue-500/20 text-blue-400' : 'bg-[#131a2e] text-slate-400 hover:text-white'
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-md text-xs font-medium border-none cursor-pointer transition-all ${
+                tab === t.id
+                  ? 'bg-blue-500/15 text-blue-400 shadow-sm shadow-blue-500/10'
+                  : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03] bg-transparent'
               }`}
             >
-              <Icon size={14} /> {t.label}
+              <Icon size={13} /> {t.label}
             </button>
           );
         })}
@@ -63,32 +73,36 @@ export default function IntelligencePage() {
 
       <form onSubmit={handleSearch} className="flex gap-2">
         <div className="relative flex-1">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-          <input value={query} onChange={e => setQuery(e.target.value)} className="w-full bg-[#131a2e] border border-[#1e293b] rounded-lg pl-9 pr-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50" placeholder="Search..." />
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
+          <input value={query} onChange={e => setQuery(e.target.value)} className="input w-full pl-9 pr-4 py-2.5 text-sm" placeholder="Search..." />
         </div>
-        <button type="submit" className="px-4 py-2.5 rounded-lg bg-blue-600 text-white text-sm border-none cursor-pointer">Search</button>
+        <button type="submit" className="btn-primary px-5 py-2.5 text-xs">Search</button>
       </form>
 
-      <div className="space-y-3">
-        {loading && <div className="text-center py-8 text-slate-500">Loading intelligence...</div>}
-        {!loading && results.length === 0 && <div className="text-center py-8 text-slate-500">No results found</div>}
-        {results.map((item, i) => (
+      <div className="space-y-2.5">
+        {loading && (
+          <div className="flex items-center justify-center py-12 gap-2 text-slate-500 text-xs">
+            <Loader2 size={14} className="animate-spin" /> Loading intelligence...
+          </div>
+        )}
+        {!loading && results.length === 0 && <div className="text-center py-12 text-slate-600 text-xs">No results found</div>}
+        {!loading && results.map((item, i) => (
           <a
             key={i}
             href={item.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block p-4 bg-[#131a2e] border border-[#1e293b] rounded-xl hover:border-blue-500/30 transition-colors no-underline"
+            className="block card p-4 hover:border-blue-500/20 transition-all no-underline group"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <h3 className="text-sm font-medium text-white mb-1">{item.title}</h3>
-                <div className="flex items-center gap-3 text-xs text-slate-500">
-                  {item.source && <span>{item.source}</span>}
-                  <span>{new Date(item.date).toLocaleDateString()}</span>
+                <h3 className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors mb-1">{item.title}</h3>
+                <div className="flex items-center gap-3 text-[10px] text-slate-600">
+                  {item.source && <span className="font-medium">{item.source}</span>}
+                  <span className="font-mono">{new Date(item.date).toLocaleDateString()}</span>
                 </div>
               </div>
-              <ExternalLink size={14} className="text-slate-500 shrink-0 mt-1" />
+              <ExternalLink size={12} className="text-slate-700 group-hover:text-blue-400 shrink-0 mt-0.5 transition-colors" />
             </div>
           </a>
         ))}

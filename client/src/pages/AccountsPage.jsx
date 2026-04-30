@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useWorkspace } from '../context/WorkspaceContext';
-import { Plus, Download, Search, ChevronDown, Trash2, Edit2, X, Save } from 'lucide-react';
+import { Plus, Download, Search, Trash2, Edit2, X, Save, Users } from 'lucide-react';
 
 const STAGES = ['Uncontacted', 'Contacted', 'Meeting', 'Proposal', 'Negotiation', 'Closed Won', 'Closed Lost'];
 const stageColors = {
-  'Uncontacted': 'bg-slate-500/20 text-slate-400',
-  'Contacted': 'bg-blue-500/20 text-blue-400',
-  'Meeting': 'bg-purple-500/20 text-purple-400',
-  'Proposal': 'bg-amber-500/20 text-amber-400',
-  'Negotiation': 'bg-orange-500/20 text-orange-400',
-  'Closed Won': 'bg-emerald-500/20 text-emerald-400',
-  'Closed Lost': 'bg-red-500/20 text-red-400',
+  'Uncontacted': 'bg-slate-500/10 text-slate-400 border border-slate-500/20',
+  'Contacted': 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
+  'Meeting': 'bg-purple-500/10 text-purple-400 border border-purple-500/20',
+  'Proposal': 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+  'Negotiation': 'bg-orange-500/10 text-orange-400 border border-orange-500/20',
+  'Closed Won': 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+  'Closed Lost': 'bg-red-500/10 text-red-400 border border-red-500/20',
 };
 
 export default function AccountsPage() {
@@ -72,99 +72,124 @@ export default function AccountsPage() {
   };
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-6 space-y-5 max-w-[1400px] mx-auto">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-white">Accounts</h2>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+            <Users size={14} className="text-blue-400" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-white">Accounts</h2>
+            <p className="text-[11px] text-slate-600">{filtered.length} of {accounts.length} accounts</p>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowAdd(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm border-none cursor-pointer">
-            <Plus size={14} /> Add
+          <button onClick={() => setShowAdd(true)} className="btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs">
+            <Plus size={13} /> Add Account
           </button>
-          <button onClick={exportCSV} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#131a2e] border border-[#1e293b] text-slate-400 text-sm hover:text-white cursor-pointer">
-            <Download size={14} /> Export CSV
+          <button onClick={exportCSV} className="btn-ghost flex items-center gap-1.5 px-3.5 py-2 text-xs">
+            <Download size={13} /> Export
           </button>
         </div>
       </div>
 
+      {/* Filters */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search accounts..." className="w-full bg-[#131a2e] border border-[#1e293b] rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50" />
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search accounts..."
+            className="input w-full pl-9 pr-4 py-2.5 text-sm"
+          />
         </div>
-        <select value={stageFilter} onChange={e => setStageFilter(e.target.value)} className="bg-[#131a2e] border border-[#1e293b] rounded-lg px-3 py-2 text-sm text-white outline-none">
+        <select
+          value={stageFilter}
+          onChange={e => setStageFilter(e.target.value)}
+          className="input px-3 py-2.5 text-sm"
+        >
           <option value="All">All Stages</option>
           {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
 
+      {/* Add Form */}
       {showAdd && (
-        <div className="bg-[#131a2e] border border-blue-500/30 rounded-xl p-4 animate-fade-in-up">
+        <div className="card p-4 animate-fade-in-up border-blue-500/20">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            <input value={newAccount.name} onChange={e => setNewAccount(p => ({ ...p, name: e.target.value }))} placeholder="Company name" className="bg-[#0a0e1a] border border-[#1e293b] rounded px-3 py-2 text-sm text-white outline-none" />
-            <input value={newAccount.industry} onChange={e => setNewAccount(p => ({ ...p, industry: e.target.value }))} placeholder="Industry" className="bg-[#0a0e1a] border border-[#1e293b] rounded px-3 py-2 text-sm text-white outline-none" />
-            <input value={newAccount.territory} onChange={e => setNewAccount(p => ({ ...p, territory: e.target.value }))} placeholder="Territory" className="bg-[#0a0e1a] border border-[#1e293b] rounded px-3 py-2 text-sm text-white outline-none" />
-            <input type="number" value={newAccount.deal_value} onChange={e => setNewAccount(p => ({ ...p, deal_value: Number(e.target.value) }))} placeholder="Deal value" className="bg-[#0a0e1a] border border-[#1e293b] rounded px-3 py-2 text-sm text-white outline-none" />
+            <input value={newAccount.name} onChange={e => setNewAccount(p => ({ ...p, name: e.target.value }))} placeholder="Company name" className="input px-3 py-2.5 text-sm" />
+            <input value={newAccount.industry} onChange={e => setNewAccount(p => ({ ...p, industry: e.target.value }))} placeholder="Industry" className="input px-3 py-2.5 text-sm" />
+            <input value={newAccount.territory} onChange={e => setNewAccount(p => ({ ...p, territory: e.target.value }))} placeholder="Territory" className="input px-3 py-2.5 text-sm" />
+            <input type="number" value={newAccount.deal_value} onChange={e => setNewAccount(p => ({ ...p, deal_value: Number(e.target.value) }))} placeholder="Deal value" className="input px-3 py-2.5 text-sm" />
             <div className="flex gap-2">
-              <button onClick={addAccount} className="flex-1 px-3 py-2 rounded bg-blue-600 text-white text-sm border-none cursor-pointer">Add</button>
-              <button onClick={() => setShowAdd(false)} className="px-3 py-2 rounded bg-transparent border border-[#1e293b] text-slate-400 text-sm cursor-pointer"><X size={14} /></button>
+              <button onClick={addAccount} className="btn-primary flex-1 px-3 py-2.5 text-xs">Add</button>
+              <button onClick={() => setShowAdd(false)} className="btn-ghost px-3 py-2.5 text-xs"><X size={14} /></button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="bg-[#131a2e] border border-[#1e293b] rounded-xl overflow-hidden">
+      {/* Table */}
+      <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#1e293b]">
-                <th className="text-left px-4 py-3 text-xs text-slate-500 font-medium uppercase">Account</th>
-                <th className="text-left px-4 py-3 text-xs text-slate-500 font-medium uppercase">Industry</th>
-                <th className="text-left px-4 py-3 text-xs text-slate-500 font-medium uppercase">Territory</th>
-                <th className="text-left px-4 py-3 text-xs text-slate-500 font-medium uppercase">ICP</th>
-                <th className="text-left px-4 py-3 text-xs text-slate-500 font-medium uppercase">Stage</th>
-                <th className="text-left px-4 py-3 text-xs text-slate-500 font-medium uppercase">Deal Value</th>
-                <th className="text-right px-4 py-3 text-xs text-slate-500 font-medium uppercase">Actions</th>
+              <tr className="border-b border-[#162032]">
+                <th className="text-left px-5 py-3.5 text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Account</th>
+                <th className="text-left px-5 py-3.5 text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Industry</th>
+                <th className="text-left px-5 py-3.5 text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Territory</th>
+                <th className="text-left px-5 py-3.5 text-[10px] text-slate-600 font-semibold uppercase tracking-wider">ICP</th>
+                <th className="text-left px-5 py-3.5 text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Stage</th>
+                <th className="text-left px-5 py-3.5 text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Deal Value</th>
+                <th className="text-right px-5 py-3.5 text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(a => (
-                <tr key={a.id} className="border-b border-[#1e293b]/50 hover:bg-white/[0.02]">
-                  <td className="px-4 py-3 text-white font-medium">{a.name}</td>
-                  <td className="px-4 py-3 text-slate-400">{a.industry}</td>
-                  <td className="px-4 py-3 text-slate-400">{a.territory}</td>
-                  <td className="px-4 py-3">
-                    <span className="text-blue-400 font-mono">{a.icp_score || '-'}</span>
+                <tr key={a.id} className="table-row border-b border-[#162032]/50">
+                  <td className="px-5 py-3.5 text-white font-medium text-xs">{a.name}</td>
+                  <td className="px-5 py-3.5 text-slate-500 text-xs">{a.industry}</td>
+                  <td className="px-5 py-3.5 text-slate-500 text-xs">{a.territory}</td>
+                  <td className="px-5 py-3.5">
+                    <span className="font-mono text-xs text-blue-400">{a.icp_score || '-'}</span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3.5">
                     {editId === a.id ? (
-                      <select value={editData.stage || a.stage} onChange={e => setEditData(p => ({ ...p, stage: e.target.value }))} className="bg-[#0a0e1a] border border-[#1e293b] rounded px-2 py-1 text-xs text-white outline-none">
+                      <select value={editData.stage || a.stage} onChange={e => setEditData(p => ({ ...p, stage: e.target.value }))} className="input px-2 py-1 text-xs">
                         {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
                     ) : (
-                      <span className={`text-xs px-2 py-1 rounded ${stageColors[a.stage] || stageColors['Uncontacted']}`}>{a.stage}</span>
+                      <span className={`badge ${stageColors[a.stage] || stageColors['Uncontacted']}`}>{a.stage}</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-slate-400 font-mono">{a.deal_value ? `$${(a.deal_value / 1000).toFixed(0)}k` : '-'}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-5 py-3.5 text-slate-400 font-mono text-xs">{a.deal_value ? `$${(a.deal_value / 1000).toFixed(0)}k` : '-'}</td>
+                  <td className="px-5 py-3.5 text-right">
                     <div className="flex items-center justify-end gap-1">
                       {editId === a.id ? (
                         <>
-                          <button onClick={() => updateAccount(a.id)} className="p-1.5 rounded hover:bg-emerald-500/20 text-emerald-400 bg-transparent border-none cursor-pointer"><Save size={14} /></button>
-                          <button onClick={() => setEditId(null)} className="p-1.5 rounded hover:bg-white/10 text-slate-400 bg-transparent border-none cursor-pointer"><X size={14} /></button>
+                          <button onClick={() => updateAccount(a.id)} className="p-1.5 rounded-md hover:bg-emerald-500/10 text-emerald-400 bg-transparent border-none cursor-pointer transition-colors"><Save size={13} /></button>
+                          <button onClick={() => setEditId(null)} className="p-1.5 rounded-md hover:bg-white/5 text-slate-500 bg-transparent border-none cursor-pointer transition-colors"><X size={13} /></button>
                         </>
                       ) : (
                         <>
-                          <button onClick={() => { setEditId(a.id); setEditData({ stage: a.stage, deal_value: a.deal_value }); }} className="p-1.5 rounded hover:bg-white/10 text-slate-400 bg-transparent border-none cursor-pointer"><Edit2 size={14} /></button>
-                          <button onClick={() => deleteAccount(a.id)} className="p-1.5 rounded hover:bg-red-500/20 text-red-400 bg-transparent border-none cursor-pointer"><Trash2 size={14} /></button>
+                          <button onClick={() => { setEditId(a.id); setEditData({ stage: a.stage, deal_value: a.deal_value }); }} className="p-1.5 rounded-md hover:bg-white/5 text-slate-600 hover:text-slate-300 bg-transparent border-none cursor-pointer transition-colors"><Edit2 size={13} /></button>
+                          <button onClick={() => deleteAccount(a.id)} className="p-1.5 rounded-md hover:bg-red-500/10 text-slate-600 hover:text-red-400 bg-transparent border-none cursor-pointer transition-colors"><Trash2 size={13} /></button>
                         </>
                       )}
                     </div>
                   </td>
                 </tr>
               ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan="7" className="px-5 py-8 text-center text-xs text-slate-600">No accounts found</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
-        {filtered.length === 0 && <div className="text-center py-8 text-slate-500 text-sm">No accounts found</div>}
       </div>
     </div>
   );
