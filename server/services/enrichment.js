@@ -30,12 +30,33 @@ async function enrichCompany(domain) {
 
 async function fetchHackerNews(companyName) {
   try {
+    const thirtyDaysAgo = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
     const res = await fetch(
-      `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(companyName)}&tags=story&hitsPerPage=5`
+      `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(companyName)}&tags=story&numericFilters=created_at_i>${thirtyDaysAgo}&hitsPerPage=8`
     );
     if (!res.ok) return [];
-    const data = await res.json();
-    return (data.hits || []).map(h => ({ title: h.title, url: h.url, date: h.created_at }));
+    let data = await res.json();
+    let hits = data.hits || [];
+
+    if (hits.length === 0) {
+      const ninetyDaysAgo = Math.floor(Date.now() / 1000) - (90 * 24 * 60 * 60);
+      const fallback = await fetch(
+        `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(companyName)}&tags=story&numericFilters=created_at_i>${ninetyDaysAgo}&hitsPerPage=8`
+      );
+      if (fallback.ok) {
+        data = await fallback.json();
+        hits = data.hits || [];
+      }
+    }
+
+    return hits.map(h => ({
+      title: h.title,
+      url: h.url || `https://news.ycombinator.com/item?id=${h.objectID}`,
+      date: h.created_at,
+      points: h.points,
+      comments: h.num_comments,
+      source: 'Hacker News',
+    }));
   } catch {
     return [];
   }

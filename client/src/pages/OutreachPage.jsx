@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import { useWorkspace } from '../context/WorkspaceContext';
 import { Send, Sparkles, Mail, MessageSquare, Loader2 } from 'lucide-react';
 
+const statusStyles = {
+  'Replied': { bg: 'rgba(34, 197, 94, 0.1)', text: '#22c55e', border: 'rgba(34, 197, 94, 0.2)' },
+  'Bounced': { bg: 'rgba(239, 68, 68, 0.1)', text: '#ef4444', border: 'rgba(239, 68, 68, 0.2)' },
+  'Sent': { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6', border: 'rgba(59, 130, 246, 0.2)' },
+};
+
 export default function OutreachPage() {
   const { workspace, config } = useWorkspace();
   const [outreach, setOutreach] = useState([]);
@@ -53,52 +59,58 @@ export default function OutreachPage() {
   const templates = config?.email_templates || [];
 
   return (
-    <div className="p-6 space-y-5 max-w-[1400px] mx-auto">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-            <Send size={14} className="text-blue-400" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-white">Outreach</h2>
-            <p className="text-[11px] text-slate-600">{outreach.length} messages sent</p>
-          </div>
+    <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <div>
+          <h2 style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Outreach</h2>
+          <p style={{ fontSize: 11, color: 'var(--text-tertiary)', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}>
+            {outreach.length} messages sent
+          </p>
         </div>
-        <button onClick={() => setComposing(!composing)} className="btn-primary flex items-center gap-1.5 px-4 py-2 text-xs">
+        <button onClick={() => setComposing(!composing)} className="btn-primary" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6 }}>
           <Sparkles size={13} /> AI Compose
         </button>
       </div>
 
       {composing && (
-        <div className="card p-5 animate-fade-in-up border-blue-500/20">
-          <h3 className="section-title mb-4 flex items-center gap-2">
-            <Sparkles size={13} className="text-blue-400" /> AI Outreach Composer
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-            <input value={composeForm.account_name} onChange={e => setComposeForm(p => ({ ...p, account_name: e.target.value }))} placeholder="Target account name" className="input px-3 py-2.5 text-sm" />
-            <select value={composeForm.persona} onChange={e => setComposeForm(p => ({ ...p, persona: e.target.value }))} className="input px-3 py-2.5 text-sm">
+        <div className="card animate-fade-in-up" style={{ padding: '20px 24px', marginBottom: 24 }}>
+          <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Sparkles size={12} style={{ color: 'var(--accent)' }} /> AI Outreach Composer
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
+            <input value={composeForm.account_name} onChange={e => setComposeForm(p => ({ ...p, account_name: e.target.value }))} placeholder="Target account name" className="input" style={{ padding: '10px 14px' }} />
+            <select value={composeForm.persona} onChange={e => setComposeForm(p => ({ ...p, persona: e.target.value }))} className="input" style={{ padding: '10px 14px' }}>
               <option>VP Engineering</option>
               <option>CTO</option>
               <option>VP Sales</option>
               <option>Head of Product</option>
               <option>CEO</option>
             </select>
-            <select value={composeForm.channel} onChange={e => setComposeForm(p => ({ ...p, channel: e.target.value }))} className="input px-3 py-2.5 text-sm">
+            <select value={composeForm.channel} onChange={e => setComposeForm(p => ({ ...p, channel: e.target.value }))} className="input" style={{ padding: '10px 14px' }}>
               <option value="email">Email</option>
               <option value="linkedin">LinkedIn</option>
               <option value="cold_call">Cold Call Script</option>
             </select>
           </div>
-          <button onClick={handleCompose} disabled={loading || !composeForm.account_name} className="btn-primary flex items-center gap-2 px-4 py-2 text-xs">
+          <button onClick={handleCompose} disabled={loading || !composeForm.account_name} className="btn-primary" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6 }}>
             {loading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
             {loading ? 'Generating...' : 'Generate Message'}
           </button>
 
           {composeResult && (
-            <div className="mt-4 card-inner p-4">
-              <div className="text-xs font-semibold text-white mb-2">Subject: {composeResult.subject}</div>
-              <div className="text-xs text-slate-400 whitespace-pre-wrap mb-4 leading-relaxed">{composeResult.body}</div>
-              <button onClick={sendOutreach} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium cursor-pointer hover:bg-emerald-500/20 transition-colors">
+            <div style={{
+              marginTop: 16, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
+              borderRadius: 8, padding: 16,
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 8 }}>Subject: {composeResult.subject}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', marginBottom: 16, lineHeight: 1.6 }}>{composeResult.body}</div>
+              <button onClick={sendOutreach} style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '8px 16px', borderRadius: 8,
+                background: 'rgba(34, 197, 94, 0.1)', border: '0.5px solid rgba(34, 197, 94, 0.2)',
+                color: '#22c55e', fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                transition: 'background 0.15s',
+              }}>
                 <Send size={12} /> Send & Log
               </button>
             </div>
@@ -107,53 +119,69 @@ export default function OutreachPage() {
       )}
 
       {templates.length > 0 && (
-        <div className="card p-5">
-          <h3 className="section-title mb-4 flex items-center gap-2">
-            <Mail size={13} className="text-purple-400" /> Email Templates
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div style={{ marginBottom: 24 }}>
+          <div className="section-title" style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Mail size={12} style={{ color: 'var(--purple)' }} /> Email Templates
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 12 }}>
             {templates.map((t, i) => (
-              <div key={i} className="card-inner p-4">
-                <div className="mb-2">
-                  <span className="badge bg-purple-500/10 text-purple-400 border border-purple-500/20">{t.vertical}</span>
-                </div>
-                <div className="text-xs font-medium text-white mb-1">{t.subject}</div>
-                <div className="text-[11px] text-slate-500 line-clamp-3 leading-relaxed">{t.body}</div>
+              <div key={i} className="card" style={{ padding: '16px 20px' }}>
+                <span className="badge" style={{
+                  background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6',
+                  border: '0.5px solid rgba(139, 92, 246, 0.2)',
+                  marginBottom: 8, display: 'inline-block',
+                }}>{t.vertical}</span>
+                <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 4 }}>{t.subject}</div>
+                <div style={{
+                  fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5,
+                  display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                }}>{t.body}</div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <div className="card overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#162032]">
-          <h3 className="section-title">Outreach History</h3>
+      {/* Outreach History */}
+      <div style={{
+        background: 'var(--bg-card)', border: '0.5px solid var(--border)',
+        borderRadius: 12, overflow: 'hidden',
+      }}>
+        <div style={{ padding: '12px 20px', borderBottom: '0.5px solid var(--border)' }}>
+          <div className="section-title">Outreach History</div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div style={{ overflowX: 'auto' }}>
+          <table className="data-table">
             <thead>
-              <tr className="border-b border-[#162032]">
-                <th className="text-left px-5 py-3 text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Date</th>
-                <th className="text-left px-5 py-3 text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Channel</th>
-                <th className="text-left px-5 py-3 text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Subject</th>
-                <th className="text-left px-5 py-3 text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Status</th>
+              <tr>
+                <th>Date</th>
+                <th>Channel</th>
+                <th>Subject</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              {outreach.map(o => (
-                <tr key={o.id} className="table-row border-b border-[#162032]/50">
-                  <td className="px-5 py-3 text-slate-500 text-xs font-mono">{new Date(o.created_at).toLocaleDateString()}</td>
-                  <td className="px-5 py-3 text-slate-400 text-xs capitalize">{o.channel}</td>
-                  <td className="px-5 py-3 text-white text-xs">{o.subject}</td>
-                  <td className="px-5 py-3">
-                    <span className={`badge ${o.status === 'Replied' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : o.status === 'Bounced' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}`}>{o.status}</span>
-                  </td>
-                </tr>
-              ))}
+              {outreach.map(o => {
+                const ss = statusStyles[o.status] || statusStyles['Sent'];
+                return (
+                  <tr key={o.id}>
+                    <td style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: 'var(--text-tertiary)' }}>{new Date(o.created_at).toLocaleDateString()}</td>
+                    <td style={{ color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{o.channel}</td>
+                    <td>{o.subject}</td>
+                    <td>
+                      <span className="badge" style={{ background: ss.bg, color: ss.text, border: `0.5px solid ${ss.border}` }}>{o.status}</span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
-        {outreach.length === 0 && <div className="text-center py-10 text-xs text-slate-600">No outreach yet. Use AI Compose to get started.</div>}
+        {outreach.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--text-tertiary)', fontSize: 12 }}>
+            No outreach yet. Use AI Compose to get started.
+          </div>
+        )}
       </div>
     </div>
   );

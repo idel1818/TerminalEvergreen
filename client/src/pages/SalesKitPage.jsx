@@ -37,41 +37,70 @@ export default function SalesKitPage() {
   }, 0);
 
   return (
-    <div className="p-6 space-y-5 max-w-[1400px] mx-auto">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-          <Briefcase size={14} className="text-blue-400" />
-        </div>
-        <div>
-          <h2 className="text-lg font-semibold text-white">Sales Kit</h2>
-          <p className="text-[11px] text-slate-600">Selling points, ROI, objections & templates</p>
-        </div>
+    <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto' }}>
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Sales Kit</h2>
+        <p style={{ fontSize: 11, color: 'var(--text-tertiary)', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}>
+          Selling points, ROI, objections & templates
+        </p>
       </div>
 
-      <div className="flex items-center gap-1.5 bg-[#0c1220] rounded-lg px-1 py-1 border border-[#162032] w-fit">
+      <div style={{ display: 'flex', gap: 4, marginBottom: 24 }}>
         {tabs.map(t => {
           const Icon = t.icon;
+          const active = tab === t.id;
           return (
-            <button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-1.5 px-3.5 py-2 rounded-md text-xs font-medium border-none cursor-pointer transition-all ${tab === t.id ? 'bg-blue-500/15 text-blue-400 shadow-sm shadow-blue-500/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03] bg-transparent'}`}>
-              <Icon size={13} /> {t.label}
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '8px 16px', borderRadius: 8,
+                fontSize: 13, fontWeight: 500,
+                background: active ? 'var(--accent-dim)' : 'transparent',
+                color: active ? 'var(--accent)' : 'var(--text-secondary)',
+                border: active ? '0.5px solid var(--border-bright)' : '0.5px solid transparent',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'var(--text-primary)'; }}
+              onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            >
+              <Icon size={14} /> {t.label}
             </button>
           );
         })}
       </div>
 
       {tab === 'selling_points' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 12 }}>
           {(config?.selling_points || []).map((sp, i) => (
-            <div key={i} className="card p-5 group">
-              <div className="flex items-center justify-between mb-3">
-                <span className="badge bg-blue-500/10 text-blue-400 border border-blue-500/20">{sp.persona}</span>
-                <button onClick={() => { setEditIdx(i); setEditData(sp); }} className="p-1 rounded-md hover:bg-white/5 text-slate-600 hover:text-slate-300 bg-transparent border-none cursor-pointer opacity-0 group-hover:opacity-100 transition-all"><Edit2 size={11} /></button>
+            <div key={i} className="card" style={{ padding: '20px 24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span className="badge" style={{
+                  background: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent)',
+                  border: '0.5px solid rgba(59, 130, 246, 0.2)',
+                }}>{sp.persona}</span>
+                <button onClick={() => { setEditIdx(i); setEditData(sp); }} style={{
+                  padding: 4, borderRadius: 6, border: 'none', background: 'transparent',
+                  color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}
+                ><Edit2 size={12} /></button>
               </div>
-              <h3 className="text-sm font-semibold text-white mb-2">{sp.title}</h3>
-              <p className="text-[11px] text-slate-400 mb-3 leading-relaxed">{sp.one_liner}</p>
-              <div className="space-y-1.5">
-                <div className="text-[11px]"><span className="text-emerald-400/80 font-medium">Proof:</span> <span className="text-slate-500">{sp.proof}</span></div>
-                <div className="text-[11px]"><span className="text-blue-400/80 font-medium">Next step:</span> <span className="text-slate-500">{sp.next_step}</span></div>
+              <h3 style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 8 }}>{sp.title}</h3>
+              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12, lineHeight: 1.5 }}>{sp.one_liner}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ fontSize: 12 }}>
+                  <span style={{ color: 'var(--success)', fontWeight: 500 }}>Proof:</span>{' '}
+                  <span style={{ color: 'var(--text-secondary)' }}>{sp.proof}</span>
+                </div>
+                <div style={{ fontSize: 12 }}>
+                  <span style={{ color: 'var(--accent)', fontWeight: 500 }}>Next step:</span>{' '}
+                  <span style={{ color: 'var(--text-secondary)' }}>{sp.next_step}</span>
+                </div>
               </div>
             </div>
           ))}
@@ -79,64 +108,78 @@ export default function SalesKitPage() {
       )}
 
       {tab === 'roi' && (
-        <div className="card p-6">
-          <h3 className="text-sm font-semibold text-white mb-5">ROI Calculator</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="card" style={{ padding: '20px 24px' }}>
+          <h3 style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 20 }}>ROI Calculator</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
             <div>
-              <label className="text-[10px] text-slate-600 uppercase tracking-wider block mb-1.5">Engineering Headcount</label>
-              <input type="number" value={roiInputs.headcount} onChange={e => setRoiInputs(p => ({ ...p, headcount: Number(e.target.value) }))} className="input w-full px-3 py-2.5 text-sm" />
+              <label className="section-title" style={{ display: 'block', marginBottom: 6 }}>Engineering Headcount</label>
+              <input type="number" value={roiInputs.headcount} onChange={e => setRoiInputs(p => ({ ...p, headcount: Number(e.target.value) }))} className="input" style={{ width: '100%', padding: '10px 14px' }} />
             </div>
             <div>
-              <label className="text-[10px] text-slate-600 uppercase tracking-wider block mb-1.5">Avg. Salary ($)</label>
-              <input type="number" value={roiInputs.salary} onChange={e => setRoiInputs(p => ({ ...p, salary: Number(e.target.value) }))} className="input w-full px-3 py-2.5 text-sm" />
+              <label className="section-title" style={{ display: 'block', marginBottom: 6 }}>Avg. Salary ($)</label>
+              <input type="number" value={roiInputs.salary} onChange={e => setRoiInputs(p => ({ ...p, salary: Number(e.target.value) }))} className="input" style={{ width: '100%', padding: '10px 14px' }} />
             </div>
             <div>
-              <label className="text-[10px] text-slate-600 uppercase tracking-wider block mb-1.5">Maintenance Cost (%)</label>
-              <input type="number" value={roiInputs.maintenance_pct} onChange={e => setRoiInputs(p => ({ ...p, maintenance_pct: Number(e.target.value) }))} className="input w-full px-3 py-2.5 text-sm" />
+              <label className="section-title" style={{ display: 'block', marginBottom: 6 }}>Maintenance Cost (%)</label>
+              <input type="number" value={roiInputs.maintenance_pct} onChange={e => setRoiInputs(p => ({ ...p, maintenance_pct: Number(e.target.value) }))} className="input" style={{ width: '100%', padding: '10px 14px' }} />
             </div>
           </div>
 
-          <div className="space-y-2.5 mb-6">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
             {lanes.map((lane, i) => {
               const laneCost = totalMaintenance * (lane.default_share / 100);
               const savings = laneCost * (1 - 1 / lane.speedup);
               return (
-                <div key={i} className="card-inner flex items-center justify-between p-3.5">
+                <div key={i} style={{
+                  background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
+                  borderRadius: 8, padding: 14,
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}>
                   <div>
-                    <div className="text-xs text-white font-medium">{lane.name}</div>
-                    <div className="text-[10px] text-slate-600 mt-0.5">{lane.benchmark}</div>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{lane.name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>{lane.benchmark}</div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-xs text-emerald-400 font-mono font-semibold">${(savings / 1000).toFixed(0)}k saved</div>
-                    <div className="text-[10px] text-slate-600">{lane.speedup}x speedup</div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 13, fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: 'var(--success)' }}>${(savings / 1000).toFixed(0)}k saved</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>{lane.speedup}x speedup</div>
                   </div>
                 </div>
               );
             })}
           </div>
 
-          <div className="p-5 bg-emerald-500/[0.06] border border-emerald-500/20 rounded-xl text-center">
-            <div className="text-[10px] text-emerald-400/80 uppercase tracking-wider font-semibold mb-1">Total Annual Savings</div>
-            <div className="text-3xl font-bold text-emerald-400 font-mono glow-text-green">${(totalSavings / 1000).toFixed(0)}k</div>
+          <div style={{
+            padding: 20, borderRadius: 12, textAlign: 'center',
+            background: 'rgba(34, 197, 94, 0.06)', border: '0.5px solid rgba(34, 197, 94, 0.2)',
+          }}>
+            <div className="section-title" style={{ color: 'var(--success)', marginBottom: 4 }}>Total Annual Savings</div>
+            <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--success)', fontFamily: "'JetBrains Mono', monospace" }}>${(totalSavings / 1000).toFixed(0)}k</div>
           </div>
         </div>
       )}
 
       {tab === 'objections' && (
-        <div className="space-y-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {(config?.objections || []).map((obj, i) => (
-            <div key={i} className="card p-5 group">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Shield size={13} className="text-red-400" />
-                  <span className="text-xs font-medium text-red-400/90">"{obj.objection}"</span>
+            <div key={i} className="card" style={{ padding: '20px 24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Shield size={13} style={{ color: 'var(--danger)' }} />
+                  <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--danger)' }}>"{obj.objection}"</span>
                 </div>
-                <button onClick={() => { setEditIdx(i); setEditData(obj); }} className="p-1 rounded-md hover:bg-white/5 text-slate-600 hover:text-slate-300 bg-transparent border-none cursor-pointer opacity-0 group-hover:opacity-100 transition-all"><Edit2 size={11} /></button>
+                <button onClick={() => { setEditIdx(i); setEditData(obj); }} style={{
+                  padding: 4, borderRadius: 6, border: 'none', background: 'transparent',
+                  color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}
+                ><Edit2 size={12} /></button>
               </div>
-              <div className="pl-5 space-y-2">
-                <div className="text-[11px]"><span className="text-emerald-400/80 font-medium">Response:</span> <span className="text-slate-400">{obj.response}</span></div>
-                <div className="text-[11px]"><span className="text-blue-400/80 font-medium">Proof:</span> <span className="text-slate-400">{obj.proof}</span></div>
-                <div className="text-[11px]"><span className="text-purple-400/80 font-medium">Ask next:</span> <span className="text-slate-400">{obj.ask_next}</span></div>
+              <div style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ fontSize: 12 }}><span style={{ color: 'var(--success)', fontWeight: 500 }}>Response:</span> <span style={{ color: 'var(--text-secondary)' }}>{obj.response}</span></div>
+                <div style={{ fontSize: 12 }}><span style={{ color: 'var(--accent)', fontWeight: 500 }}>Proof:</span> <span style={{ color: 'var(--text-secondary)' }}>{obj.proof}</span></div>
+                <div style={{ fontSize: 12 }}><span style={{ color: 'var(--purple)', fontWeight: 500 }}>Ask next:</span> <span style={{ color: 'var(--text-secondary)' }}>{obj.ask_next}</span></div>
               </div>
             </div>
           ))}
@@ -144,37 +187,54 @@ export default function SalesKitPage() {
       )}
 
       {tab === 'email_templates' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 12 }}>
           {(config?.email_templates || []).map((t, i) => (
-            <div key={i} className="card p-5 group">
-              <div className="flex items-center justify-between mb-3">
-                <span className="badge bg-purple-500/10 text-purple-400 border border-purple-500/20">{t.vertical}</span>
-                <button onClick={() => { setEditIdx(i); setEditData(t); }} className="p-1 rounded-md hover:bg-white/5 text-slate-600 hover:text-slate-300 bg-transparent border-none cursor-pointer opacity-0 group-hover:opacity-100 transition-all"><Edit2 size={11} /></button>
+            <div key={i} className="card" style={{ padding: '20px 24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span className="badge" style={{
+                  background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6',
+                  border: '0.5px solid rgba(139, 92, 246, 0.2)',
+                }}>{t.vertical}</span>
+                <button onClick={() => { setEditIdx(i); setEditData(t); }} style={{
+                  padding: 4, borderRadius: 6, border: 'none', background: 'transparent',
+                  color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}
+                ><Edit2 size={12} /></button>
               </div>
-              <div className="text-xs font-medium text-white mb-2">{t.subject}</div>
-              <div className="text-[11px] text-slate-500 whitespace-pre-wrap leading-relaxed">{t.body}</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 8 }}>{t.subject}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{t.body}</div>
             </div>
           ))}
         </div>
       )}
 
       {editIdx !== null && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setEditIdx(null)}>
-          <div className="card w-full max-w-lg p-6 animate-fade-in-up" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white">Edit</h3>
-              <button onClick={() => setEditIdx(null)} className="p-1.5 rounded-md hover:bg-white/5 text-slate-500 bg-transparent border-none cursor-pointer"><X size={14} /></button>
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 200,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+        }} onClick={() => setEditIdx(null)}>
+          <div className="card animate-fade-in-up" style={{ padding: 24, width: '100%', maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', margin: 0 }}>Edit</h3>
+              <button onClick={() => setEditIdx(null)} style={{
+                padding: 6, borderRadius: 6, border: 'none', background: 'transparent',
+                color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex',
+              }}><X size={14} /></button>
             </div>
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {Object.entries(editData).map(([key, val]) => (
                 typeof val === 'string' && (
                   <div key={key}>
-                    <label className="text-[10px] text-slate-600 uppercase tracking-wider capitalize">{key.replace(/_/g, ' ')}</label>
-                    <textarea value={val} onChange={e => setEditData(p => ({ ...p, [key]: e.target.value }))} className="input w-full px-3 py-2 text-xs mt-1 resize-none" rows={key === 'body' ? 4 : 2} />
+                    <label className="section-title" style={{ display: 'block', marginBottom: 6, textTransform: 'capitalize' }}>{key.replace(/_/g, ' ')}</label>
+                    <textarea value={val} onChange={e => setEditData(p => ({ ...p, [key]: e.target.value }))} className="input" style={{ width: '100%', padding: 10, fontSize: 12, resize: 'none' }} rows={key === 'body' ? 4 : 2} />
                   </div>
                 )
               ))}
-              <button onClick={() => saveEdit(tab)} className="btn-primary flex items-center gap-1.5 px-4 py-2 text-xs">
+              <button onClick={() => saveEdit(tab)} className="btn-primary" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Save size={12} /> Save
               </button>
             </div>

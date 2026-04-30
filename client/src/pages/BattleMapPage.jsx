@@ -153,52 +153,55 @@ export default function BattleMapPage() {
   const deployedAccounts = config?.battle_map?.deployed_accounts || [];
 
   return (
-    <div className="p-6 space-y-6">
-      <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-        <Globe size={22} className="text-blue-400" /> Battle Map
-      </h2>
+    <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto' }}>
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Battle Map</h2>
+        <p style={{ fontSize: 11, color: 'var(--text-tertiary)', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}>
+          Geographic distribution of accounts & HQs
+        </p>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3 bg-[#131a2e] border border-[#1e293b] rounded-xl overflow-hidden" style={{ height: '500px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: 16 }}>
+        <div style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 12, overflow: 'hidden', height: 500 }}>
           <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
         </div>
 
-        <div className="space-y-4">
-          <div className="bg-[#131a2e] border border-[#1e293b] rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-white mb-3">Legend</h3>
-            <div className="space-y-2 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-blue-500" />
-                <span className="text-slate-400">Target Accounts ({accounts.filter(a => a.lat).length})</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="card" style={{ padding: '16px 20px' }}>
+            <div className="section-title" style={{ marginBottom: 12 }}>Legend</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--accent)' }} />
+                Target Accounts ({accounts.filter(a => a.lat).length})
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                <span className="text-slate-400">HQ Locations ({hqLocations.length})</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--success)' }} />
+                HQ Locations ({hqLocations.length})
               </div>
             </div>
           </div>
 
-          <div className="bg-[#131a2e] border border-[#1e293b] rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-1.5">
-              <MapPin size={14} className="text-emerald-400" /> HQ Locations
-            </h3>
-            <div className="space-y-2">
+          <div className="card" style={{ padding: '16px 20px' }}>
+            <div className="section-title" style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <MapPin size={12} style={{ color: 'var(--success)' }} /> HQ Locations
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {hqLocations.map((h, i) => (
-                <div key={i} className="text-xs text-slate-400 flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
+                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--success)' }} />
                   {h.name}
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-[#131a2e] border border-[#1e293b] rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-white mb-3">Deployed Accounts</h3>
-            <div className="space-y-1">
+          <div className="card" style={{ padding: '16px 20px' }}>
+            <div className="section-title" style={{ marginBottom: 12 }}>Deployed Accounts</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {deployedAccounts.map((a, i) => (
-                <div key={i} className="text-xs text-emerald-400">{a}</div>
+                <div key={i} style={{ fontSize: 12, color: 'var(--success)' }}>{a}</div>
               ))}
-              {deployedAccounts.length === 0 && <div className="text-xs text-slate-500">No deployments yet</div>}
+              {deployedAccounts.length === 0 && <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>No deployments yet</div>}
             </div>
           </div>
         </div>

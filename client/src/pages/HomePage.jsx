@@ -35,37 +35,58 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#060a13] bg-dot-pattern flex flex-col items-center justify-center px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-dot-pattern" style={{ background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, position: 'relative', overflow: 'hidden' }}>
       {/* Ambient glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-blue-500/[0.04] rounded-full blur-[100px] pointer-events-none" />
+      <div style={{
+        position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%, -50%)',
+        width: 600, height: 400, background: 'rgba(59, 130, 246, 0.04)', borderRadius: '50%', filter: 'blur(100px)', pointerEvents: 'none',
+      }} />
 
-      <div className="text-center max-w-xl mx-auto relative z-10">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center animate-float">
-            <Terminal size={24} className="text-blue-400" />
+      <div style={{ textAlign: 'center', maxWidth: 540, width: '100%', position: 'relative', zIndex: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+          <div className="animate-float" style={{
+            width: 48, height: 48, borderRadius: 16,
+            background: 'var(--accent-dim)', border: '0.5px solid var(--border-bright)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Terminal size={24} style={{ color: 'var(--accent)' }} />
           </div>
         </div>
 
-        <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
-          <span className="font-mono text-blue-400 glow-text">&gt;_</span> GTM Terminal
+        <h1 style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
+          <span className="glow-text" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--accent)' }}>&gt;_</span> GTM Terminal
         </h1>
 
-        <p className="text-sm text-slate-400 mb-10 leading-relaxed max-w-md mx-auto">
+        <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 40, lineHeight: 1.6, maxWidth: 400, margin: '0 auto 40px' }}>
           The sales intelligence terminal that configures itself.<br />
           Type any company name to get started.
         </p>
 
-        <form onSubmit={handleSubmit} className="mb-8">
-          <div className="relative group">
-            <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-blue-500/20 via-blue-500/5 to-blue-500/20 opacity-0 group-focus-within:opacity-100 transition-opacity" />
-            <div className="relative flex items-center">
-              <span className="absolute left-4 text-blue-400 font-mono text-base">&gt;</span>
+        <form onSubmit={handleSubmit} style={{ marginBottom: 32 }}>
+          <div style={{ position: 'relative' }}>
+            {/* Animated gradient border */}
+            <div className="animate-pulse-glow" style={{
+              position: 'absolute', inset: -1, borderRadius: 12,
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(59, 130, 246, 0.05), rgba(59, 130, 246, 0.3))',
+              pointerEvents: 'none',
+            }} />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <span style={{ position: 'absolute', left: 16, color: 'var(--accent)', fontFamily: "'JetBrains Mono', monospace", fontSize: 16 }}>&gt;</span>
               <input
                 type="text"
                 value={companyName}
                 onChange={e => setCompanyName(e.target.value)}
                 placeholder="Type a company name..."
-                className="w-full bg-[#0c1220] border border-[#1e293b] rounded-xl pl-9 pr-4 py-3.5 text-base text-white placeholder-slate-600 font-mono outline-none focus:border-blue-500/40 transition-colors relative"
+                style={{
+                  width: '100%',
+                  background: 'var(--bg-secondary)',
+                  border: '0.5px solid var(--border)',
+                  borderRadius: 12,
+                  paddingLeft: 36, paddingRight: 16, paddingTop: 14, paddingBottom: 14,
+                  fontSize: 16, color: 'var(--text-primary)',
+                  fontFamily: "'JetBrains Mono', monospace",
+                  outline: 'none',
+                }}
                 autoFocus
               />
             </div>
@@ -73,56 +94,108 @@ export default function HomePage() {
           <button
             type="submit"
             disabled={!companyName.trim()}
-            className="btn-primary mt-5 inline-flex items-center gap-2 px-8 py-3 text-sm"
+            className="btn-primary"
+            style={{
+              marginTop: 20,
+              padding: '14px 32px',
+              fontSize: 15,
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              borderRadius: 10,
+            }}
           >
-            Configure Terminal <ArrowRight size={16} />
+            Configure Terminal <ArrowRight size={18} />
           </button>
           {error && (
-            <div className="mt-4 px-4 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            <div style={{
+              marginTop: 16, padding: '10px 16px', borderRadius: 8,
+              background: 'rgba(239, 68, 68, 0.1)', border: '0.5px solid rgba(239, 68, 68, 0.2)',
+              color: 'var(--danger)', fontSize: 13,
+            }}>
               {error}
             </div>
           )}
         </form>
 
         {workspaces.length > 0 && (
-          <div className="mb-10">
-            <h3 className="section-title mb-3">Recently configured</h3>
-            <div className="flex flex-wrap gap-2 justify-center">
+          <div style={{ marginBottom: 40 }}>
+            <div className="section-title" style={{ marginBottom: 12 }}>Recently configured</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
               {workspaces.slice(0, 5).map(w => (
                 <button
                   key={w.id}
                   onClick={() => handleQuickSwitch(w.id)}
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#0c1220] border border-[#162032] hover:border-blue-500/30 text-sm text-slate-300 hover:text-white cursor-pointer transition-all hover:bg-[#0f1629]"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '8px 14px', borderRadius: 8,
+                    background: 'var(--bg-card)', border: '0.5px solid var(--border)',
+                    color: 'var(--text-secondary)', cursor: 'pointer',
+                    fontSize: 12, fontWeight: 500,
+                    transition: 'border-color 0.15s, color 0.15s, background 0.15s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = 'var(--border-bright)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                    e.currentTarget.style.background = 'var(--bg-card-hover)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                    e.currentTarget.style.background = 'var(--bg-card)';
+                  }}
                 >
                   {w.logo_url ? (
-                    <img src={w.logo_url} alt="" className="w-4 h-4 rounded" />
+                    <img src={w.logo_url} alt="" style={{ width: 16, height: 16, borderRadius: 4 }} />
                   ) : (
-                    <div className="w-4 h-4 rounded bg-blue-500/20 flex items-center justify-center text-blue-400 text-[9px] font-bold">{w.company_name[0]?.toUpperCase()}</div>
+                    <div style={{
+                      width: 16, height: 16, borderRadius: 4,
+                      background: 'var(--accent-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: 'var(--accent)', fontSize: 9, fontWeight: 700,
+                    }}>
+                      {w.company_name[0]?.toUpperCase()}
+                    </div>
                   )}
-                  <span className="text-xs font-medium">{w.company_name}</span>
+                  {w.company_name}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        <div className="grid grid-cols-4 gap-3">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
           {[
             { icon: Terminal, step: '01', text: 'Type company name' },
             { icon: Database, step: '02', text: 'Enrich from 5 sources' },
             { icon: Brain, step: '03', text: 'AI generates config' },
             { icon: Clock, step: '04', text: 'Terminal ready' },
           ].map(({ icon: Icon, step, text }) => (
-            <div key={step} className="p-3 rounded-xl bg-[#0c1220]/80 border border-[#162032] group hover:border-blue-500/20 transition-colors">
-              <Icon size={18} className="text-blue-400/70 mx-auto mb-2 group-hover:text-blue-400 transition-colors" />
-              <div className="font-mono text-[10px] text-blue-400/50 mb-0.5">{step}</div>
-              <div className="text-[11px] text-slate-500 group-hover:text-slate-400 transition-colors">{text}</div>
+            <div key={step} style={{
+              padding: '16px 12px',
+              borderRadius: 12,
+              background: 'var(--bg-card)',
+              border: '0.5px solid var(--border)',
+              textAlign: 'center',
+              transition: 'border-color 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--border-bright)'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+            >
+              <Icon size={18} style={{ color: 'var(--accent)', opacity: 0.7, margin: '0 auto 8px' }} />
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--accent)', opacity: 0.5, marginBottom: 4 }}>{step}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{text}</div>
             </div>
           ))}
         </div>
       </div>
 
-      <footer className="absolute bottom-6 text-[10px] text-slate-700 font-mono tracking-wider uppercase">
+      <footer style={{
+        position: 'absolute', bottom: 24,
+        fontSize: 10, color: 'var(--text-tertiary)',
+        fontFamily: "'JetBrains Mono', monospace",
+        textTransform: 'uppercase', letterSpacing: '0.1em',
+      }}>
         Powered by GTM Terminal
       </footer>
     </div>

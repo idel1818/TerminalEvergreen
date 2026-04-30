@@ -1,26 +1,42 @@
-export default function MetricCard({ title, value, subtitle, icon: Icon, color = 'blue' }) {
-  const styles = {
-    blue: { bg: 'bg-blue-500/[0.06]', border: 'border-blue-500/20', icon: 'text-blue-400 bg-blue-500/10', text: 'text-blue-400' },
-    green: { bg: 'bg-emerald-500/[0.06]', border: 'border-emerald-500/20', icon: 'text-emerald-400 bg-emerald-500/10', text: 'text-emerald-400' },
-    amber: { bg: 'bg-amber-500/[0.06]', border: 'border-amber-500/20', icon: 'text-amber-400 bg-amber-500/10', text: 'text-amber-400' },
-    purple: { bg: 'bg-purple-500/[0.06]', border: 'border-purple-500/20', icon: 'text-purple-400 bg-purple-500/10', text: 'text-purple-400' },
-    red: { bg: 'bg-red-500/[0.06]', border: 'border-red-500/20', icon: 'text-red-400 bg-red-500/10', text: 'text-red-400' },
-  };
-
-  const s = styles[color];
-
+export default function MetricCard({ title, value, subtitle, icon: Icon }) {
   return (
-    <div className={`rounded-xl border ${s.border} ${s.bg} p-4 backdrop-blur-sm transition-all hover:scale-[1.02]`}>
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">{title}</span>
-        {Icon && (
-          <div className={`w-7 h-7 rounded-lg ${s.icon} flex items-center justify-center`}>
-            <Icon size={13} />
-          </div>
-        )}
+    <div style={{
+      background: 'var(--bg-card)',
+      border: '0.5px solid var(--border)',
+      borderRadius: 12,
+      padding: '20px 24px',
+      height: 100,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      transition: 'border-color 0.2s, background 0.2s',
+      cursor: 'default',
+    }}
+    onMouseEnter={e => {
+      e.currentTarget.style.borderColor = 'var(--border-bright)';
+      e.currentTarget.style.background = 'var(--bg-card-hover)';
+    }}
+    onMouseLeave={e => {
+      e.currentTarget.style.borderColor = 'var(--border)';
+      e.currentTarget.style.background = 'var(--bg-card)';
+    }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{
+          fontSize: 10,
+          fontFamily: "'JetBrains Mono', monospace",
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+          color: 'var(--text-tertiary)',
+        }}>
+          {title}
+        </span>
+        {Icon && <Icon size={16} style={{ color: 'var(--accent)', opacity: 0.2 }} />}
       </div>
-      <div className="text-2xl font-bold text-white tracking-tight">{value}</div>
-      {subtitle && <div className="text-[11px] text-slate-500 mt-1.5">{subtitle}</div>}
+      <div style={{ fontSize: 28, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1 }}>{value}</div>
+      {subtitle && (
+        <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{subtitle}</div>
+      )}
     </div>
   );
 }

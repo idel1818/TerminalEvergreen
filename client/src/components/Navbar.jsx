@@ -33,60 +33,100 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="border-b border-[#162032] bg-[#060a13]/90 backdrop-blur-xl sticky top-0 z-50">
-        <div className="flex items-center justify-between px-5 h-12">
-          <div className="flex items-center gap-5">
-            <Link to="/" className="flex items-center gap-2 text-blue-400 font-semibold no-underline group">
-              <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
-                <Terminal size={14} className="text-blue-400" />
-              </div>
-              <span className="font-mono text-sm font-semibold tracking-tight">GTM Terminal</span>
-            </Link>
-            {workspace && (
-              <div className="flex items-center gap-0.5 bg-[#0c1220] rounded-lg px-1 py-0.5 border border-[#162032]">
-                {navItems.map(item => {
-                  const Icon = item.icon;
-                  const active = location.pathname === item.path;
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium no-underline transition-all ${
-                        active
-                          ? 'bg-blue-500/15 text-blue-400 shadow-sm shadow-blue-500/10'
-                          : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]'
-                      }`}
-                    >
-                      <Icon size={13} />
-                      <span className="hidden xl:inline">{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-4">
+      <nav style={{
+        height: 52,
+        background: 'rgba(7, 11, 20, 0.95)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '0.5px solid var(--border)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '100%', padding: '0 20px' }}>
+          {/* Left: Logo */}
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 14 }}>
+              <span style={{ color: 'var(--accent)' }}>&gt;_</span>{' '}
+              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>GTM Terminal</span>
+            </span>
+          </Link>
+
+          {/* Centre: Nav links */}
+          {workspace && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              {navItems.map(item => {
+                const Icon = item.icon;
+                const active = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '6px 12px',
+                      fontSize: 13,
+                      color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+                      textDecoration: 'none',
+                      borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent',
+                      transition: 'color 0.15s, border-color 0.15s',
+                      marginBottom: -1,
+                    }}
+                    onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'var(--text-primary)'; }}
+                    onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                  >
+                    <Icon size={14} />
+                    <span className="hidden lg:inline">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Right: Company + Switch + Clock + LIVE */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             {workspace && config?.company && (
-              <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-[#0c1220] border border-[#162032]">
-                {config.company.logo_url && (
-                  <img src={config.company.logo_url} alt="" className="w-5 h-5 rounded" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {config.company.logo_url ? (
+                  <img src={config.company.logo_url} alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{
+                    width: 24, height: 24, borderRadius: '50%',
+                    background: 'var(--accent-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--accent)', fontSize: 10, fontWeight: 700,
+                  }}>
+                    {config.company.name?.[0]?.toUpperCase()}
+                  </div>
                 )}
-                <span className="text-xs text-white font-semibold">{config.company.name}</span>
+                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>{config.company.name}</span>
               </div>
             )}
             {workspace && (
               <button
                 onClick={() => setShowSwitch(true)}
-                className="btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs"
+                className="btn-ghost"
+                style={{ padding: '4px 12px', fontSize: 12 }}
               >
-                <ArrowLeftRight size={11} />
-                Switch
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <ArrowLeftRight size={11} /> Switch
+                </span>
               </button>
             )}
-            <span className="font-mono text-[10px] text-slate-600 tabular-nums">{utcTime}</span>
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
-              <span className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider">Live</span>
+            <span style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 12,
+              color: 'var(--text-tertiary)',
+              fontVariantNumeric: 'tabular-nums',
+            }}>
+              {utcTime}
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div className="animate-live-pulse" style={{
+                width: 6, height: 6, borderRadius: '50%',
+                background: 'var(--success)',
+              }} />
+              <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--success)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Live</span>
             </div>
           </div>
         </div>

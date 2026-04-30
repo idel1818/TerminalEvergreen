@@ -1,11 +1,33 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useWorkspace } from '../context/WorkspaceContext';
-import { Users, DollarSign, Send, MessageSquare, Calendar, MapPin, Activity, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Users, DollarSign, Send, MessageSquare, Calendar, MapPin, Activity, AlertTriangle, ExternalLink, Clock, ArrowRight } from 'lucide-react';
 import MetricCard from '../components/MetricCard';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+
+const TRIGGER_BADGE_COLORS = {
+  'Expansion Signal': { bg: 'rgba(34, 197, 94, 0.1)', text: '#22c55e', border: 'rgba(34, 197, 94, 0.2)' },
+  'Funding Signal': { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6', border: 'rgba(59, 130, 246, 0.2)' },
+  'Competitive Displacement': { bg: 'rgba(239, 68, 68, 0.1)', text: '#ef4444', border: 'rgba(239, 68, 68, 0.2)' },
+  'Product Launch': { bg: 'rgba(139, 92, 246, 0.1)', text: '#8b5cf6', border: 'rgba(139, 92, 246, 0.2)' },
+  'Executive Change': { bg: 'rgba(245, 158, 11, 0.1)', text: '#f59e0b', border: 'rgba(245, 158, 11, 0.2)' },
+};
+
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  return `${months}mo ago`;
+}
 
 export default function CommandPage() {
   const { workspace, config } = useWorkspace();
+  const navigate = useNavigate();
   const [accounts, setAccounts] = useState([]);
   const [activities, setActivities] = useState([]);
   const [outreach, setOutreach] = useState([]);
@@ -41,113 +63,301 @@ export default function CommandPage() {
     : 0;
   const territories = [...new Set(accounts.map(a => a.territory).filter(Boolean))].length;
 
-  const colors = ['#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#10b981'];
+  const triggerEvents = config?.trigger_events || [];
 
   return (
-    <div className="p-6 space-y-5 max-w-[1400px] mx-auto">
+    <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto' }}>
       {/* Ticker */}
       {config?.ticker_messages && (
-        <div className="card px-4 py-2.5 overflow-hidden">
-          <div className="ticker-scroll whitespace-nowrap font-mono text-[11px] text-blue-400/80">
+        <div style={{
+          height: 32,
+          background: '#0a0f1e',
+          borderRadius: 8,
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          marginBottom: 24,
+        }}>
+          <div className="ticker-scroll" style={{
+            whiteSpace: 'nowrap',
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 12,
+            color: 'var(--accent)',
+            opacity: 0.8,
+            padding: '0 16px',
+          }}>
             {[...config.ticker_messages, ...config.ticker_messages].map((m, i) => (
-              <span key={i} className="mx-8">
-                <span className="text-blue-500/40 mr-2">///</span>{m}
+              <span key={i} style={{ marginRight: 48 }}>
+                <span style={{ color: 'var(--accent)', opacity: 0.3, marginRight: 8 }}>///</span>{m}
               </span>
             ))}
           </div>
         </div>
       )}
 
-      {/* Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <MetricCard title="Total Accounts" value={accounts.length} icon={Users} color="blue" />
-        <MetricCard title="Pipeline Value" value={`$${(pipelineValue / 1000).toFixed(0)}k`} icon={DollarSign} color="green" />
-        <MetricCard title="Outreach This Week" value={thisWeekOutreach} icon={Send} color="purple" />
-        <MetricCard title="Response Rate" value={`${responseRate}%`} icon={MessageSquare} color="amber" />
-        <MetricCard title="Meetings" value={accounts.filter(a => a.stage === 'Meeting').length} icon={Calendar} color="blue" />
-        <MetricCard title="Territories" value={territories} icon={MapPin} color="green" />
+      {/* Metric Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12, marginBottom: 32 }}>
+        <MetricCard title="Total Accounts" value={accounts.length} subtitle="Active pipeline" icon={Users} />
+        <MetricCard title="Pipeline Value" value={`$${(pipelineValue / 1000).toFixed(0)}k`} subtitle="Total deal value" icon={DollarSign} />
+        <MetricCard title="Outreach / Week" value={thisWeekOutreach} subtitle="Messages sent" icon={Send} />
+        <MetricCard title="Response Rate" value={`${responseRate}%`} subtitle="Reply ratio" icon={MessageSquare} />
+        <MetricCard title="Meetings" value={accounts.filter(a => a.stage === 'Meeting').length} subtitle="Scheduled" icon={Calendar} />
+        <MetricCard title="Territories" value={territories} subtitle="Active regions" icon={MapPin} />
       </div>
 
-      {/* Pipeline + Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 card p-5">
-          <h3 className="section-title mb-4">Pipeline Funnel</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={funnelData} layout="vertical" margin={{ left: 0, right: 12 }}>
-              <XAxis type="number" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis type="category" dataKey="stage" tick={{ fill: '#94a3b8', fontSize: 11 }} width={95} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{ background: '#0f1629', border: '1px solid #162032', borderRadius: 10, color: '#f1f5f9', fontSize: 12 }}
-                cursor={{ fill: 'rgba(59,130,246,0.03)' }}
-              />
-              <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={18}>
-                {funnelData.map((_, i) => <Cell key={i} fill={colors[i]} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="card p-5">
-          <h3 className="section-title mb-4 flex items-center gap-2">
-            <Activity size={13} className="text-blue-400" /> Live Activity
-          </h3>
-          <div className="space-y-2.5 max-h-48 overflow-y-auto">
-            {activities.length === 0 && <p className="text-xs text-slate-600">No activity yet</p>}
-            {activities.slice(0, 10).map(a => (
-              <div key={a.id} className="flex items-start gap-2.5 text-xs group">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-400/60 mt-1.5 shrink-0 group-hover:bg-blue-400 transition-colors" />
-                <div>
-                  <span className="text-slate-400 group-hover:text-slate-300 transition-colors">{a.description}</span>
-                  <div className="text-slate-700 text-[10px] mt-0.5 font-mono">{new Date(a.created_at).toLocaleString()}</div>
-                </div>
+      {/* Pipeline Funnel — Stage Cards */}
+      <div style={{ marginBottom: 32 }}>
+        <div className="section-title" style={{ marginBottom: 12 }}>Pipeline Funnel</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12 }}>
+          {funnelData.map((stage, i) => {
+            const isFirst = i === 0 && stage.count > 0;
+            return (
+              <div
+                key={stage.stage}
+                onClick={() => navigate(`/accounts?stage=${encodeURIComponent(stage.stage)}`)}
+                style={{
+                  background: isFirst ? 'var(--accent-dim)' : 'var(--bg-card)',
+                  border: isFirst ? '0.5px solid var(--border-bright)' : '0.5px solid var(--border)',
+                  borderRadius: 12,
+                  padding: '20px 24px',
+                  height: 120,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  transition: 'border-color 0.2s, background 0.2s',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = 'var(--border-bright)';
+                  e.currentTarget.style.background = isFirst ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-card-hover)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = isFirst ? 'var(--border-bright)' : 'var(--border)';
+                  e.currentTarget.style.background = isFirst ? 'var(--accent-dim)' : 'var(--bg-card)';
+                }}
+              >
+                <span style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 10,
+                  color: 'var(--text-tertiary)',
+                  alignSelf: 'flex-end',
+                }}>
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span style={{
+                  fontSize: 28,
+                  fontWeight: 600,
+                  color: isFirst ? 'var(--accent)' : 'var(--text-primary)',
+                  lineHeight: 1,
+                }}>
+                  {stage.count}
+                </span>
+                <span style={{
+                  fontSize: 11,
+                  color: 'var(--text-secondary)',
+                  textAlign: 'center',
+                }}>
+                  {stage.stage === 'Closed Won' ? 'Closed' : stage.stage.length > 11 ? stage.stage.substring(0, 10) + '.' : stage.stage}
+                </span>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Trigger Events + HN Feed */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {config?.trigger_events && (
-          <div className="card p-5">
-            <h3 className="section-title mb-4 flex items-center gap-2">
-              <AlertTriangle size={13} className="text-amber-400" /> Trigger Events
-            </h3>
-            <div className="space-y-2.5">
-              {config.trigger_events.map((evt, i) => (
-                <div key={i} className="card-inner p-3">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-medium text-white">{evt.title}</span>
-                    <span className={`badge ${evt.urgency >= 4 ? 'bg-red-500/15 text-red-400' : evt.urgency >= 3 ? 'bg-amber-500/15 text-amber-400' : 'bg-blue-500/15 text-blue-400'}`}>
+      {/* Two-column layout: Trigger Events (60%) | Activity + HN (40%) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 24 }}>
+        {/* Left: Trigger Events */}
+        <div>
+          <div className="section-title" style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <AlertTriangle size={12} style={{ color: 'var(--warning)' }} /> Trigger Events
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {triggerEvents.slice(0, 4).map((evt, i) => {
+              const badgeColor = TRIGGER_BADGE_COLORS[evt.type] || TRIGGER_BADGE_COLORS['Funding Signal'];
+              const urgencyColor = evt.urgency >= 4 ? '#ef4444' : evt.urgency >= 3 ? '#f59e0b' : '#3b82f6';
+              return (
+                <div key={i} style={{
+                  background: 'var(--bg-card)',
+                  border: '0.5px solid var(--border)',
+                  borderRadius: 12,
+                  padding: '20px 24px',
+                  transition: 'border-color 0.2s, background 0.2s',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = 'var(--border-bright)';
+                  e.currentTarget.style.background = 'var(--bg-card-hover)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = 'var(--border)';
+                  e.currentTarget.style.background = 'var(--bg-card)';
+                }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <span style={{
+                      fontSize: 11,
+                      fontWeight: 500,
+                      padding: '2px 8px',
+                      borderRadius: 99,
+                      background: badgeColor.bg,
+                      color: badgeColor.text,
+                      border: `0.5px solid ${badgeColor.border}`,
+                    }}>
                       {evt.type}
                     </span>
+                    <span style={{
+                      fontSize: 10,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      color: urgencyColor,
+                      fontWeight: 600,
+                    }}>
+                      {evt.urgency >= 4 ? 'HIGH' : evt.urgency >= 3 ? 'MED' : 'LOW'}
+                    </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">{evt.description}</p>
-                  <p className="text-[11px] text-blue-400/80 mt-1">{evt.action_prompt}</p>
+                  <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 6 }}>
+                    {evt.title}
+                  </div>
+                  <div style={{
+                    fontSize: 12,
+                    color: 'var(--text-secondary)',
+                    lineHeight: 1.5,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    marginBottom: 12,
+                  }}>
+                    {evt.description}
+                  </div>
+                  <div style={{ borderTop: '0.5px solid var(--border)', paddingTop: 10 }}>
+                    <span style={{ fontSize: 12, color: 'var(--accent)', fontStyle: 'italic' }}>
+                      → {evt.action_prompt}
+                    </span>
+                  </div>
                 </div>
-              ))}
+              );
+            })}
+            {triggerEvents.length > 4 && (
+              <div style={{ textAlign: 'center', paddingTop: 4 }}>
+                <span style={{ fontSize: 12, color: 'var(--accent)', cursor: 'pointer' }}>
+                  View all {triggerEvents.length} events →
+                </span>
+              </div>
+            )}
+            {triggerEvents.length === 0 && (
+              <div style={{ fontSize: 12, color: 'var(--text-tertiary)', padding: '20px 0' }}>
+                No trigger events configured
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right: Live Activity + HN Feed */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* Live Activity */}
+          <div>
+            <div className="section-title" style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Activity size={12} style={{ color: 'var(--accent)' }} /> Live Activity
+            </div>
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '0.5px solid var(--border)',
+              borderRadius: 12,
+              padding: '16px 20px',
+              maxHeight: 220,
+              overflowY: 'auto',
+            }}>
+              {activities.length === 0 && (
+                <div style={{ fontSize: 12, color: 'var(--text-tertiary)', padding: '8px 0' }}>No activity yet</div>
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {activities.slice(0, 10).map(a => (
+                  <div key={a.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <div style={{
+                      width: 6, height: 6, borderRadius: '50%',
+                      background: a.action_type === 'outreach' ? 'var(--purple)' : a.action_type === 'account_update' ? 'var(--success)' : 'var(--accent)',
+                      marginTop: 5, flexShrink: 0,
+                    }} />
+                    <div style={{ flex: 1, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                      {a.description}
+                    </div>
+                    <span style={{
+                      fontSize: 10,
+                      padding: '2px 8px',
+                      borderRadius: 99,
+                      background: 'var(--accent-dim)',
+                      color: 'var(--accent)',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                    }}>
+                      {timeAgo(a.created_at)}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        )}
 
-        <div className="card p-5">
-          <h3 className="section-title mb-4 flex items-center gap-2">
-            <ExternalLink size={13} className="text-orange-400" /> Hacker News Feed
-          </h3>
-          <div className="space-y-2.5">
-            {hnStories.length === 0 && <p className="text-xs text-slate-600">Loading...</p>}
-            {hnStories.slice(0, 5).map((story, i) => (
-              <a
-                key={i}
-                href={story.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block card-inner p-3 hover:border-orange-500/20 transition-colors no-underline group"
-              >
-                <div className="text-xs text-slate-300 group-hover:text-white transition-colors">{story.title}</div>
-                <div className="text-[10px] text-slate-600 mt-1 font-mono">{new Date(story.date).toLocaleDateString()}</div>
-              </a>
-            ))}
+          {/* Hacker News Feed */}
+          <div>
+            <div className="section-title" style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <ExternalLink size={12} style={{ color: '#f97316' }} /> Hacker News Feed
+            </div>
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '0.5px solid var(--border)',
+              borderRadius: 12,
+              padding: '16px 20px',
+            }}>
+              {hnStories.length === 0 && (
+                <div style={{ fontSize: 12, color: 'var(--text-tertiary)', padding: '8px 0' }}>
+                  No recent HN activity — monitoring for signals
+                </div>
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {hnStories.slice(0, 8).map((story, i) => (
+                  <a
+                    key={i}
+                    href={story.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      textDecoration: 'none',
+                      display: 'block',
+                      transition: 'opacity 0.15s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                      <span style={{
+                        fontSize: 10,
+                        fontFamily: "'JetBrains Mono', monospace",
+                        color: 'var(--text-tertiary)',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                      }}>
+                        {timeAgo(story.date)}
+                      </span>
+                      <span style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.4 }}>
+                        {story.title}
+                      </span>
+                    </div>
+                    <div style={{
+                      fontSize: 11,
+                      color: 'var(--text-tertiary)',
+                      marginTop: 2,
+                      paddingLeft: 50,
+                    }}>
+                      {story.source ? `${story.source} · ` : ''}
+                      {story.points ? `${story.points} points · ` : ''}
+                      {story.comments ? `${story.comments} comments` : ''}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>

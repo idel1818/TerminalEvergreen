@@ -41,68 +41,80 @@ export default function IntelligencePage() {
   ];
 
   return (
-    <div className="p-6 space-y-5 max-w-[1400px] mx-auto">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-          <Brain size={14} className="text-blue-400" />
-        </div>
-        <div>
-          <h2 className="text-lg font-semibold text-white">Intelligence</h2>
-          <p className="text-[11px] text-slate-600">Real-time signals from public sources</p>
-        </div>
+    <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto' }}>
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Intelligence</h2>
+        <p style={{ fontSize: 11, color: 'var(--text-tertiary)', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}>
+          Real-time signals from public sources
+        </p>
       </div>
 
-      <div className="flex items-center gap-1.5 bg-[#0c1220] rounded-lg px-1 py-1 border border-[#162032] w-fit">
+      <div style={{ display: 'flex', gap: 4, marginBottom: 20 }}>
         {tabs.map(t => {
           const Icon = t.icon;
+          const active = tab === t.id;
           return (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-md text-xs font-medium border-none cursor-pointer transition-all ${
-                tab === t.id
-                  ? 'bg-blue-500/15 text-blue-400 shadow-sm shadow-blue-500/10'
-                  : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03] bg-transparent'
-              }`}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '8px 16px', borderRadius: 8,
+                fontSize: 13, fontWeight: 500,
+                background: active ? 'var(--accent-dim)' : 'transparent',
+                color: active ? 'var(--accent)' : 'var(--text-secondary)',
+                border: active ? '0.5px solid var(--border-bright)' : '0.5px solid transparent',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'var(--text-primary)'; }}
+              onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'var(--text-secondary)'; }}
             >
-              <Icon size={13} /> {t.label}
+              <Icon size={14} /> {t.label}
             </button>
           );
         })}
       </div>
 
-      <form onSubmit={handleSearch} className="flex gap-2">
-        <div className="relative flex-1">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
-          <input value={query} onChange={e => setQuery(e.target.value)} className="input w-full pl-9 pr-4 py-2.5 text-sm" placeholder="Search..." />
+      <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+        <div style={{ position: 'relative', flex: 1 }}>
+          <Search size={13} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+          <input value={query} onChange={e => setQuery(e.target.value)} className="input" style={{ width: '100%', paddingLeft: 36, paddingRight: 16, paddingTop: 10, paddingBottom: 10 }} placeholder="Search..." />
         </div>
-        <button type="submit" className="btn-primary px-5 py-2.5 text-xs">Search</button>
+        <button type="submit" className="btn-primary" style={{ padding: '10px 20px' }}>Search</button>
       </form>
 
-      <div className="space-y-2.5">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {loading && (
-          <div className="flex items-center justify-center py-12 gap-2 text-slate-500 text-xs">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 0', gap: 8, color: 'var(--text-tertiary)', fontSize: 12 }}>
             <Loader2 size={14} className="animate-spin" /> Loading intelligence...
           </div>
         )}
-        {!loading && results.length === 0 && <div className="text-center py-12 text-slate-600 text-xs">No results found</div>}
+        {!loading && results.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-tertiary)', fontSize: 12 }}>No results found</div>
+        )}
         {!loading && results.map((item, i) => (
           <a
             key={i}
             href={item.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block card p-4 hover:border-blue-500/20 transition-all no-underline group"
+            className="card"
+            style={{
+              padding: '16px 20px', textDecoration: 'none', display: 'block',
+            }}
           >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <h3 className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors mb-1">{item.title}</h3>
-                <div className="flex items-center gap-3 text-[10px] text-slate-600">
-                  {item.source && <span className="font-medium">{item.source}</span>}
-                  <span className="font-mono">{new Date(item.date).toLocaleDateString()}</span>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 6px 0', lineHeight: 1.4 }}>{item.title}</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: 'var(--text-tertiary)' }}>
+                  {item.source && <span style={{ fontWeight: 500 }}>{item.source}</span>}
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{new Date(item.date).toLocaleDateString()}</span>
+                  {item.points && <span>{item.points} pts</span>}
+                  {item.comments && <span>{item.comments} comments</span>}
                 </div>
               </div>
-              <ExternalLink size={12} className="text-slate-700 group-hover:text-blue-400 shrink-0 mt-0.5 transition-colors" />
+              <ExternalLink size={12} style={{ color: 'var(--text-tertiary)', flexShrink: 0, marginTop: 2 }} />
             </div>
           </a>
         ))}

@@ -29,82 +29,95 @@ export default function CompetitionPage() {
   };
 
   return (
-    <div className="p-6 space-y-5 max-w-[1400px] mx-auto">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-          <Swords size={14} className="text-blue-400" />
-        </div>
-        <div>
-          <h2 className="text-lg font-semibold text-white">Competition</h2>
-          <p className="text-[11px] text-slate-600">{competitors.length} competitors tracked</p>
-        </div>
+    <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto' }}>
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Competition</h2>
+        <p style={{ fontSize: 11, color: 'var(--text-tertiary)', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}>
+          {competitors.length} competitors tracked
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 16 }}>
         {competitors.map((comp, i) => (
-          <div key={i} className="card p-5 group">
+          <div key={i} className="card" style={{ padding: '20px 24px' }}>
             {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white">{comp.name}</h3>
-              <div className="flex items-center gap-2">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', margin: 0 }}>{comp.name}</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {comp.status === 'winning' ? (
-                  <span className="badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                  <span className="badge" style={{
+                    background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e',
+                    border: '0.5px solid rgba(34, 197, 94, 0.2)',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                  }}>
                     <TrendingUp size={10} /> {comp.status_label}
                   </span>
                 ) : (
-                  <span className="badge bg-red-500/10 text-red-400 border border-red-500/20 flex items-center gap-1">
+                  <span className="badge" style={{
+                    background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444',
+                    border: '0.5px solid rgba(239, 68, 68, 0.2)',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                  }}>
                     <TrendingDown size={10} /> {comp.status_label}
                   </span>
                 )}
-                <button onClick={() => { setEditIdx(i); setEditCard(comp); }} className="p-1 rounded-md hover:bg-white/5 text-slate-600 hover:text-slate-300 bg-transparent border-none cursor-pointer opacity-0 group-hover:opacity-100 transition-all">
-                  <Edit2 size={11} />
-                </button>
+                <button onClick={() => { setEditIdx(i); setEditCard(comp); }} style={{
+                  padding: 4, borderRadius: 6, border: 'none', background: 'transparent',
+                  color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex',
+                  opacity: 0, transition: 'opacity 0.2s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '0'}
+                ><Edit2 size={12} /></button>
               </div>
             </div>
 
             {/* Metrics */}
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              <div className="card-inner p-2.5">
-                <span className="text-[10px] text-slate-600 uppercase tracking-wider">Valuation</span>
-                <div className="text-xs text-white font-semibold mt-0.5">{comp.valuation || 'N/A'}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+              <div style={{ background: 'var(--bg-secondary)', border: '0.5px solid var(--border)', borderRadius: 8, padding: 10 }}>
+                <div className="section-title" style={{ marginBottom: 4 }}>Valuation</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{comp.valuation || 'N/A'}</div>
               </div>
-              <div className="card-inner p-2.5">
-                <span className="text-[10px] text-slate-600 uppercase tracking-wider">ARR</span>
-                <div className="text-xs text-white font-semibold mt-0.5">{comp.arr || 'N/A'}</div>
+              <div style={{ background: 'var(--bg-secondary)', border: '0.5px solid var(--border)', borderRadius: 8, padding: 10 }}>
+                <div className="section-title" style={{ marginBottom: 4 }}>ARR</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{comp.arr || 'N/A'}</div>
               </div>
             </div>
 
             {/* Details */}
-            <div className="space-y-3 mb-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
               <div>
-                <div className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Differentiator</div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">{comp.differentiator}</p>
+                <div className="section-title" style={{ marginBottom: 4 }}>Differentiator</div>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>{comp.differentiator}</p>
               </div>
               <div>
-                <div className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Our Advantage</div>
-                <p className="text-[11px] text-emerald-400/80 leading-relaxed">{comp.our_advantage}</p>
+                <div className="section-title" style={{ marginBottom: 4 }}>Our Advantage</div>
+                <p style={{ fontSize: 12, color: 'var(--success)', lineHeight: 1.5, margin: 0 }}>{comp.our_advantage}</p>
               </div>
             </div>
 
             {/* Battlecard */}
             {comp.battlecard && (
-              <div className="card-inner p-3.5 mb-4">
-                <div className="flex items-center gap-1.5 mb-2.5">
-                  <Shield size={11} className="text-amber-400" />
-                  <span className="text-[10px] font-semibold text-amber-400 uppercase tracking-wider">Battle Card</span>
+              <div style={{
+                background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
+                borderRadius: 8, padding: 14, marginBottom: 16,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                  <Shield size={12} style={{ color: 'var(--warning)' }} />
+                  <span className="section-title" style={{ color: 'var(--warning)' }}>Battle Card</span>
                 </div>
-                <div className="space-y-2 text-[11px]">
-                  <div className="flex gap-2">
-                    <span className="text-red-400/80 shrink-0 font-medium">Strength:</span>
-                    <span className="text-slate-400">{comp.battlecard.their_strength}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 12 }}>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <span style={{ color: 'var(--danger)', fontWeight: 500, flexShrink: 0 }}>Strength:</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>{comp.battlecard.their_strength}</span>
                   </div>
-                  <div className="flex gap-2">
-                    <span className="text-emerald-400/80 shrink-0 font-medium">Weakness:</span>
-                    <span className="text-slate-400">{comp.battlecard.their_weakness}</span>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <span style={{ color: 'var(--success)', fontWeight: 500, flexShrink: 0 }}>Weakness:</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>{comp.battlecard.their_weakness}</span>
                   </div>
-                  <div className="flex gap-2">
-                    <span className="text-blue-400/80 shrink-0 font-medium">Response:</span>
-                    <span className="text-slate-400">{comp.battlecard.one_line_response}</span>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <span style={{ color: 'var(--accent)', fontWeight: 500, flexShrink: 0 }}>Response:</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>{comp.battlecard.one_line_response}</span>
                   </div>
                 </div>
               </div>
@@ -112,14 +125,23 @@ export default function CompetitionPage() {
 
             {/* News */}
             {hnFeeds[comp.name] && hnFeeds[comp.name].length > 0 && (
-              <div className="space-y-1.5 pt-3 border-t border-[#162032]">
-                <div className="text-[10px] text-slate-600 uppercase tracking-wider mb-2">Recent News</div>
-                {hnFeeds[comp.name].map((s, j) => (
-                  <a key={j} href={s.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[11px] text-slate-500 hover:text-blue-400 no-underline transition-colors">
-                    <ExternalLink size={9} className="shrink-0" />
-                    <span className="truncate">{s.title}</span>
-                  </a>
-                ))}
+              <div style={{ borderTop: '0.5px solid var(--border)', paddingTop: 12 }}>
+                <div className="section-title" style={{ marginBottom: 8 }}>Recent News</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {hnFeeds[comp.name].map((s, j) => (
+                    <a key={j} href={s.url} target="_blank" rel="noopener noreferrer" style={{
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      fontSize: 12, color: 'var(--text-secondary)', textDecoration: 'none',
+                      transition: 'color 0.15s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                    >
+                      <ExternalLink size={10} style={{ flexShrink: 0 }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</span>
+                    </a>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -128,24 +150,31 @@ export default function CompetitionPage() {
 
       {/* Edit Modal */}
       {editIdx !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setEditIdx(null)}>
-          <div className="card p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white">Edit: {editCard.name}</h3>
-              <button onClick={() => setEditIdx(null)} className="p-1.5 rounded-md hover:bg-white/5 text-slate-500 bg-transparent border-none cursor-pointer"><X size={14} /></button>
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 200,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+        }} onClick={() => setEditIdx(null)}>
+          <div className="card" style={{ padding: 24, width: '100%', maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', margin: 0 }}>Edit: {editCard.name}</h3>
+              <button onClick={() => setEditIdx(null)} style={{
+                padding: 6, borderRadius: 6, border: 'none', background: 'transparent',
+                color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex',
+              }}><X size={14} /></button>
             </div>
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
-                <label className="text-[10px] text-slate-600 uppercase tracking-wider">Differentiator</label>
-                <textarea value={editCard.differentiator || ''} onChange={e => setEditCard(p => ({ ...p, differentiator: e.target.value }))} className="input w-full mt-1 px-3 py-2 text-xs h-16 resize-none" />
+                <label className="section-title" style={{ display: 'block', marginBottom: 6 }}>Differentiator</label>
+                <textarea value={editCard.differentiator || ''} onChange={e => setEditCard(p => ({ ...p, differentiator: e.target.value }))} className="input" style={{ width: '100%', padding: 10, fontSize: 12, height: 64, resize: 'none' }} />
               </div>
               <div>
-                <label className="text-[10px] text-slate-600 uppercase tracking-wider">Our Advantage</label>
-                <textarea value={editCard.our_advantage || ''} onChange={e => setEditCard(p => ({ ...p, our_advantage: e.target.value }))} className="input w-full mt-1 px-3 py-2 text-xs h-16 resize-none" />
+                <label className="section-title" style={{ display: 'block', marginBottom: 6 }}>Our Advantage</label>
+                <textarea value={editCard.our_advantage || ''} onChange={e => setEditCard(p => ({ ...p, our_advantage: e.target.value }))} className="input" style={{ width: '100%', padding: 10, fontSize: 12, height: 64, resize: 'none' }} />
               </div>
-              <div className="flex gap-2 pt-2">
-                <button onClick={saveEdit} className="btn-primary flex items-center gap-1.5 px-4 py-2 text-xs"><Save size={12} /> Save</button>
-                <button onClick={() => setEditIdx(null)} className="btn-ghost px-4 py-2 text-xs">Cancel</button>
+              <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
+                <button onClick={saveEdit} className="btn-primary" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6 }}><Save size={12} /> Save</button>
+                <button onClick={() => setEditIdx(null)} className="btn-ghost" style={{ padding: '8px 16px' }}>Cancel</button>
               </div>
             </div>
           </div>
