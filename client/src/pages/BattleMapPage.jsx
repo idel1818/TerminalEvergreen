@@ -6,6 +6,7 @@ export default function BattleMapPage() {
   const { workspace, config } = useWorkspace();
   const containerRef = useRef(null);
   const rendererRef = useRef(null);
+  const cleanupRef = useRef(null);
   const [accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
 
@@ -93,19 +94,24 @@ export default function BattleMapPage() {
       let previousMouse = { x: 0, y: 0 };
       let rotationVelocity = { x: 0.002, y: 0 };
 
-      containerRef.current.addEventListener('mousedown', (e) => {
+      const onMouseDown = (e) => {
         isDragging = true;
         previousMouse = { x: e.clientX, y: e.clientY };
-      });
-      containerRef.current.addEventListener('mousemove', (e) => {
+      };
+      const onMouseMove = (e) => {
         if (!isDragging) return;
         const dx = e.clientX - previousMouse.x;
         const dy = e.clientY - previousMouse.y;
         rotationVelocity.x = dx * 0.005;
         rotationVelocity.y = dy * 0.005;
         previousMouse = { x: e.clientX, y: e.clientY };
-      });
-      containerRef.current.addEventListener('mouseup', () => { isDragging = false; });
+      };
+      const onMouseUp = () => { isDragging = false; };
+
+      const container = containerRef.current;
+      container.addEventListener('mousedown', onMouseDown);
+      container.addEventListener('mousemove', onMouseMove);
+      container.addEventListener('mouseup', onMouseUp);
 
       function animate() {
         animationId = requestAnimationFrame(animate);
@@ -127,11 +133,19 @@ export default function BattleMapPage() {
         renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
       };
       window.addEventListener('resize', handleResize);
+
+      cleanupRef.current = () => {
+        container.removeEventListener('mousedown', onMouseDown);
+        container.removeEventListener('mousemove', onMouseMove);
+        container.removeEventListener('mouseup', onMouseUp);
+        window.removeEventListener('resize', handleResize);
+      };
     }
 
     return () => {
       if (animationId) cancelAnimationFrame(animationId);
       if (rendererRef.current) rendererRef.current.dispose();
+      if (cleanupRef.current) cleanupRef.current();
     };
   }, [accounts, config]);
 

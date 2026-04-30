@@ -19,16 +19,30 @@ router.post('/configure', async (req, res) => {
 
     const companyData = await gatherCompanyData(company_name);
 
-    const insertResult = db.prepare(
-      'INSERT INTO workspaces (company_name, domain, logo_url, config_json) VALUES (?, ?, ?, ?)'
-    ).run(company_name, companyData.domain, companyData.logo_url, '{}');
+    let workspaceId;
+    const existing = force_refresh
+      ? db.prepare('SELECT * FROM workspaces WHERE company_name = ? COLLATE NOCASE ORDER BY updated_at DESC LIMIT 1').get(company_name)
+      : null;
 
-    const workspaceId = insertResult.lastInsertRowid;
+    if (existing) {
+      workspaceId = existing.id;
+      db.prepare('UPDATE workspaces SET domain = ?, logo_url = ?, updated_at = datetime(\'now\') WHERE id = ?')
+        .run(companyData.domain, companyData.logo_url, workspaceId);
+    } else {
+      const insertResult = db.prepare(
+        'INSERT INTO workspaces (company_name, domain, logo_url, config_json) VALUES (?, ?, ?, ?)'
+      ).run(company_name, companyData.domain, companyData.logo_url, '{}');
+      workspaceId = insertResult.lastInsertRowid;
+    }
 
     const config = await generateConfig(companyData, workspaceId);
 
     db.prepare('UPDATE workspaces SET config_json = ?, updated_at = datetime(\'now\') WHERE id = ?')
       .run(JSON.stringify(config), workspaceId);
+
+    if (existing) {
+      db.prepare('DELETE FROM accounts WHERE workspace_id = ?').run(workspaceId);
+    }
 
     if (config.target_accounts && config.target_accounts.length > 0) {
       const insertAccount = db.prepare(
@@ -48,7 +62,7 @@ router.post('/configure', async (req, res) => {
     }
 
     db.prepare('INSERT INTO activities (workspace_id, type, description) VALUES (?, ?, ?)')
-      .run(workspaceId, 'workspace_configured', `Terminal configured for ${company_name}`);
+      .run(workspaceId, force_refresh ? 'workspace_reconfigured' : 'workspace_configured', `Terminal ${force_refresh ? 'reconfigured' : 'configured'} for ${company_name}`);
 
     const workspace = db.prepare('SELECT * FROM workspaces WHERE id = ?').get(workspaceId);
     res.json({ workspace, config, cached: false });

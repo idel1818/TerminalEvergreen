@@ -34,7 +34,7 @@ router.put('/:outreachId', (req, res) => {
   }
   params.push(req.params.outreachId);
   if (updates.length > 0) {
-    db.prepare(`UPDATE outreach SET ${updates.join(', ')} WHERE id = ? AND workspace_id = ${req.params.id}`).run(...params);
+    db.prepare(`UPDATE outreach SET ${updates.join(', ')} WHERE id = ? AND workspace_id = ?`).run(...params, req.params.id);
   }
   const item = db.prepare('SELECT * FROM outreach WHERE id = ?').get(req.params.outreachId);
   res.json(item);

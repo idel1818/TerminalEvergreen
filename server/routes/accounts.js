@@ -35,7 +35,7 @@ router.put('/:accountId', (req, res) => {
   updates.push("updated_at = datetime('now')");
   params.push(req.params.accountId);
 
-  db.prepare(`UPDATE accounts SET ${updates.join(', ')} WHERE id = ? AND workspace_id = ${req.params.id}`).run(...params);
+  db.prepare(`UPDATE accounts SET ${updates.join(', ')} WHERE id = ? AND workspace_id = ?`).run(...params, req.params.id);
   const account = db.prepare('SELECT * FROM accounts WHERE id = ?').get(req.params.accountId);
   res.json(account);
 });
