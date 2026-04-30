@@ -26,7 +26,7 @@ router.get('/accounts', async (req, res) => {
 router.get('/hiring', async (req, res) => {
   try {
     const query = req.query.q || 'hiring engineering';
-    const stories = await fetchHackerNews(query + ' hiring');
+    const stories = await fetchHackerNews(query);
     res.json(stories);
   } catch (err) {
     res.status(500).json({ error: err.message });

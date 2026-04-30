@@ -20,27 +20,39 @@ router.post('/configure', async (req, res) => {
     const companyData = await gatherCompanyData(company_name);
 
     let workspaceId;
+    let isUpdate = false;
     const existing = force_refresh
       ? db.prepare('SELECT * FROM workspaces WHERE company_name = ? COLLATE NOCASE ORDER BY updated_at DESC LIMIT 1').get(company_name)
       : null;
 
     if (existing) {
       workspaceId = existing.id;
+      isUpdate = true;
       db.prepare('UPDATE workspaces SET domain = ?, logo_url = ?, updated_at = datetime(\'now\') WHERE id = ?')
         .run(companyData.domain, companyData.logo_url, workspaceId);
-    } else {
-      const insertResult = db.prepare(
-        'INSERT INTO workspaces (company_name, domain, logo_url, config_json) VALUES (?, ?, ?, ?)'
-      ).run(company_name, companyData.domain, companyData.logo_url, '{}');
-      workspaceId = insertResult.lastInsertRowid;
     }
 
-    const config = await generateConfig(companyData, workspaceId);
+    let config;
+    try {
+      config = await generateConfig(companyData, workspaceId || 0);
+    } catch (genErr) {
+      // If we haven't created a workspace row yet, just re-throw
+      // If we updated an existing one, that's fine — original data is preserved
+      throw genErr;
+    }
 
-    db.prepare('UPDATE workspaces SET config_json = ?, updated_at = datetime(\'now\') WHERE id = ?')
-      .run(JSON.stringify(config), workspaceId);
+    // Only create the workspace row after config generation succeeds
+    if (!existing) {
+      const insertResult = db.prepare(
+        'INSERT INTO workspaces (company_name, domain, logo_url, config_json) VALUES (?, ?, ?, ?)'
+      ).run(company_name, companyData.domain, companyData.logo_url, JSON.stringify(config));
+      workspaceId = insertResult.lastInsertRowid;
+    } else {
+      db.prepare('UPDATE workspaces SET config_json = ?, updated_at = datetime(\'now\') WHERE id = ?')
+        .run(JSON.stringify(config), workspaceId);
+    }
 
-    if (existing) {
+    if (isUpdate) {
       db.prepare('DELETE FROM accounts WHERE workspace_id = ?').run(workspaceId);
     }
 
@@ -62,7 +74,7 @@ router.post('/configure', async (req, res) => {
     }
 
     db.prepare('INSERT INTO activities (workspace_id, type, description) VALUES (?, ?, ?)')
-      .run(workspaceId, force_refresh ? 'workspace_reconfigured' : 'workspace_configured', `Terminal ${force_refresh ? 'reconfigured' : 'configured'} for ${company_name}`);
+      .run(workspaceId, isUpdate ? 'workspace_reconfigured' : 'workspace_configured', `Terminal ${isUpdate ? 'reconfigured' : 'configured'} for ${company_name}`);
 
     const workspace = db.prepare('SELECT * FROM workspaces WHERE id = ?').get(workspaceId);
     res.json({ workspace, config, cached: false });

@@ -5,6 +5,7 @@ const multer = require('multer');
 const { extractDocument } = require('../services/claude');
 const path = require('path');
 const fs = require('fs');
+const pdfParse = require('pdf-parse');
 
 const uploadDir = path.join(__dirname, '..', '..', 'data', 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -42,6 +43,10 @@ router.post('/import/sheets', async (req, res) => {
     if (url.includes('docs.google.com/spreadsheets') && !url.includes('/pub')) {
       const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
       if (match) csvUrl = `https://docs.google.com/spreadsheets/d/${match[1]}/pub?output=csv`;
+    }
+
+    if (!csvUrl.startsWith('https://docs.google.com/spreadsheets/')) {
+      return res.status(400).json({ error: 'Only Google Sheets URLs are supported' });
     }
 
     const response = await fetch(csvUrl);
@@ -92,8 +97,10 @@ router.post('/upload/document', upload.single('file'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
     let content = '';
-    if (req.file.mimetype === 'text/plain' || req.file.originalname.endsWith('.txt')) {
-      content = fs.readFileSync(req.file.path, 'utf-8');
+    if (req.file.originalname.endsWith('.pdf') || req.file.mimetype === 'application/pdf') {
+      const dataBuffer = fs.readFileSync(req.file.path);
+      const pdfData = await pdfParse(dataBuffer);
+      content = pdfData.text;
     } else {
       content = fs.readFileSync(req.file.path, 'utf-8');
     }
