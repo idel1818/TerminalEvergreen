@@ -11,13 +11,12 @@ router.post('/compose', async (req, res) => {
     const config = JSON.parse(workspace.config_json);
     const { account_name, persona, channel } = req.body;
 
-    const result = await composeOutreach(config, account_name || 'Target Account', persona, channel);
+    const { result, _usage } = await composeOutreach(config, account_name || 'Target Account', persona, channel);
 
-    const inputTokens = 500;
-    const outputTokens = 300;
-    const costUsd = (inputTokens * 3 / 1000000) + (outputTokens * 15 / 1000000);
-    db.prepare('INSERT INTO api_usage (workspace_id, feature, input_tokens, output_tokens, estimated_cost_usd) VALUES (?, ?, ?, ?, ?)')
-      .run(req.params.id, 'compose_outreach', inputTokens, outputTokens, costUsd);
+    if (_usage) {
+      db.prepare('INSERT INTO api_usage (workspace_id, feature, input_tokens, output_tokens, estimated_cost_usd) VALUES (?, ?, ?, ?, ?)')
+        .run(req.params.id, 'compose_outreach', _usage.inputTokens, _usage.outputTokens, _usage.costUsd);
+    }
 
     res.json(result);
   } catch (err) {
@@ -34,13 +33,12 @@ router.post('/research', async (req, res) => {
     const config = JSON.parse(workspace.config_json);
     const { account_name } = req.body;
 
-    const result = await researchAccount(config, account_name);
+    const { result, _usage } = await researchAccount(config, account_name);
 
-    const inputTokens = 300;
-    const outputTokens = 500;
-    const costUsd = (inputTokens * 3 / 1000000) + (outputTokens * 15 / 1000000);
-    db.prepare('INSERT INTO api_usage (workspace_id, feature, input_tokens, output_tokens, estimated_cost_usd) VALUES (?, ?, ?, ?, ?)')
-      .run(req.params.id, 'account_research', inputTokens, outputTokens, costUsd);
+    if (_usage) {
+      db.prepare('INSERT INTO api_usage (workspace_id, feature, input_tokens, output_tokens, estimated_cost_usd) VALUES (?, ?, ?, ?, ?)')
+        .run(req.params.id, 'account_research', _usage.inputTokens, _usage.outputTokens, _usage.costUsd);
+    }
 
     res.json(result);
   } catch (err) {

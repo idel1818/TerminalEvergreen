@@ -7,6 +7,36 @@ const path = require('path');
 const fs = require('fs');
 const pdfParse = require('pdf-parse');
 
+function parseCSVRow(row) {
+  const fields = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < row.length; i++) {
+    const ch = row[i];
+    if (inQuotes) {
+      if (ch === '"' && row[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else if (ch === '"') {
+        inQuotes = false;
+      } else {
+        current += ch;
+      }
+    } else {
+      if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ',') {
+        fields.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+  }
+  fields.push(current.trim());
+  return fields;
+}
+
 const uploadDir = path.join(__dirname, '..', '..', 'data', 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
@@ -56,7 +86,7 @@ router.post('/import/sheets', async (req, res) => {
     const lines = csvText.split('\n').filter(l => l.trim());
     if (lines.length < 2) return res.status(400).json({ error: 'No data rows found' });
 
-    const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
+    const headers = parseCSVRow(lines[0]).map(h => h.toLowerCase());
     const nameIdx = headers.findIndex(h => h.includes('company') || h.includes('name'));
     const industryIdx = headers.findIndex(h => h.includes('industry'));
     const territoryIdx = headers.findIndex(h => h.includes('territory') || h.includes('region'));
@@ -68,7 +98,7 @@ router.post('/import/sheets', async (req, res) => {
     );
 
     for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].split(',').map(c => c.trim().replace(/"/g, ''));
+      const cols = parseCSVRow(lines[i]);
       const name = nameIdx >= 0 ? cols[nameIdx] : cols[0];
       if (!name) continue;
 
@@ -110,12 +140,13 @@ router.post('/upload/document', upload.single('file'), async (req, res) => {
       throw parseErr;
     }
 
-    let extracted;
+    let extractResult;
     try {
-      extracted = await extractDocument(content);
+      extractResult = await extractDocument(content);
     } finally {
       fs.unlink(req.file.path, () => {});
     }
+    const extracted = extractResult.result || extractResult;
 
     const workspace = db.prepare('SELECT * FROM workspaces WHERE id = ?').get(req.params.id);
     if (workspace) {
@@ -141,6 +172,11 @@ router.post('/upload/document', upload.single('file'), async (req, res) => {
 
     db.prepare('INSERT INTO activities (workspace_id, type, description) VALUES (?, ?, ?)')
       .run(req.params.id, 'document_upload', `Processed document: ${req.file.originalname}`);
+
+    if (extractResult._usage) {
+      db.prepare('INSERT INTO api_usage (workspace_id, feature, input_tokens, output_tokens, estimated_cost_usd) VALUES (?, ?, ?, ?, ?)')
+        .run(req.params.id, 'document_extract', extractResult._usage.inputTokens, extractResult._usage.outputTokens, extractResult._usage.costUsd);
+    }
 
     res.json({ success: true, extracted });
   } catch (err) {

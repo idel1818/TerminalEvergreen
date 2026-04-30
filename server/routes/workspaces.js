@@ -121,6 +121,7 @@ router.put('/:id', (req, res) => {
 
   db.prepare(`UPDATE workspaces SET ${updates.join(', ')} WHERE id = ?`).run(...params);
   const workspace = db.prepare('SELECT * FROM workspaces WHERE id = ?').get(req.params.id);
+  if (!workspace) return res.status(404).json({ error: 'Workspace not found' });
   res.json({ workspace, config: JSON.parse(workspace.config_json) });
 });
 

@@ -176,7 +176,11 @@ Write a compelling, personalized message. Return JSON: { "subject": string, "bod
 
   const text = message.content[0].text;
   const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  return JSON.parse(cleaned);
+  const result = JSON.parse(cleaned);
+  const inputTokens = message.usage.input_tokens;
+  const outputTokens = message.usage.output_tokens;
+  const costUsd = (inputTokens * 3 / 1000000) + (outputTokens * 15 / 1000000);
+  return { result, _usage: { inputTokens, outputTokens, costUsd } };
 }
 
 async function researchAccount(workspaceConfig, accountName) {
@@ -190,7 +194,11 @@ async function researchAccount(workspaceConfig, accountName) {
 
   const text = message.content[0].text;
   const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  return JSON.parse(cleaned);
+  const result = JSON.parse(cleaned);
+  const inputTokens = message.usage.input_tokens;
+  const outputTokens = message.usage.output_tokens;
+  const costUsd = (inputTokens * 3 / 1000000) + (outputTokens * 15 / 1000000);
+  return { result, _usage: { inputTokens, outputTokens, costUsd } };
 }
 
 async function extractDocument(content) {
@@ -207,7 +215,11 @@ ${content.substring(0, 10000)}`;
 
   const text = message.content[0].text;
   const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  return JSON.parse(cleaned);
+  const result = JSON.parse(cleaned);
+  const inputTokens = message.usage.input_tokens;
+  const outputTokens = message.usage.output_tokens;
+  const costUsd = (inputTokens * 3 / 1000000) + (outputTokens * 15 / 1000000);
+  return { result, _usage: { inputTokens, outputTokens, costUsd } };
 }
 
 module.exports = { generateConfig, composeOutreach, researchAccount, extractDocument };
