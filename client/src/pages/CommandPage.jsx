@@ -16,8 +16,12 @@ export default function CommandPage() {
     fetch(`/api/workspaces/${workspace.id}/accounts`).then(r => r.json()).then(setAccounts);
     fetch(`/api/workspaces/${workspace.id}/activities`).then(r => r.json()).then(setActivities);
     fetch(`/api/workspaces/${workspace.id}/outreach`).then(r => r.json()).then(setOutreach);
-    fetch(`/api/intelligence/sector?q=${encodeURIComponent(config?.company?.name || '')}`).then(r => r.json()).then(setHnStories);
-  }, [workspace, config]);
+  }, [workspace]);
+
+  useEffect(() => {
+    if (!config?.company?.name) return;
+    fetch(`/api/intelligence/sector?q=${encodeURIComponent(config.company.name)}`).then(r => r.json()).then(setHnStories);
+  }, [config?.company?.name]);
 
   const stages = ['Uncontacted', 'Contacted', 'Meeting', 'Proposal', 'Negotiation', 'Closed Won'];
   const funnelData = stages.map(stage => ({

@@ -13,7 +13,7 @@ app.use('/api/workspaces', require('./routes/workspaces'));
 app.use('/api/workspaces/:id/accounts', require('./routes/accounts'));
 app.use('/api/workspaces/:id/outreach', require('./routes/outreach'));
 app.use('/api/workspaces/:id', require('./routes/compose'));
-app.use('/api/workspaces/:id/activities', (req, res) => {
+app.get('/api/workspaces/:id/activities', (req, res) => {
   const db = require('./database');
   const activities = db.prepare('SELECT * FROM activities WHERE workspace_id = ? ORDER BY created_at DESC LIMIT 20').all(req.params.id);
   res.json(activities);

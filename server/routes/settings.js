@@ -61,7 +61,14 @@ router.post('/integrations/hubspot', (req, res) => {
 
 router.get('/integrations', (req, res) => {
   const integrations = db.prepare('SELECT * FROM integrations WHERE workspace_id = ?').all(req.params.id);
-  res.json(integrations);
+  res.json(integrations.map(i => ({
+    ...i,
+    config_json: i.config_json ? JSON.stringify(
+      Object.fromEntries(Object.entries(JSON.parse(i.config_json)).map(([k, v]) =>
+        [k, typeof v === 'string' && k.toLowerCase().includes('key') ? v.slice(0, 4) + '****' : v]
+      ))
+    ) : i.config_json
+  })));
 });
 
 router.post('/import/sheets', async (req, res) => {

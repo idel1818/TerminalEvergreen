@@ -152,13 +152,16 @@ router.put('/:id', (req, res) => {
 });
 
 router.delete('/:id', (req, res) => {
-  db.prepare('DELETE FROM accounts WHERE workspace_id = ?').run(req.params.id);
-  db.prepare('DELETE FROM contacts WHERE workspace_id = ?').run(req.params.id);
-  db.prepare('DELETE FROM outreach WHERE workspace_id = ?').run(req.params.id);
-  db.prepare('DELETE FROM activities WHERE workspace_id = ?').run(req.params.id);
-  db.prepare('DELETE FROM api_usage WHERE workspace_id = ?').run(req.params.id);
-  db.prepare('DELETE FROM integrations WHERE workspace_id = ?').run(req.params.id);
-  db.prepare('DELETE FROM workspaces WHERE id = ?').run(req.params.id);
+  const deleteAll = db.transaction((id) => {
+    db.prepare('DELETE FROM accounts WHERE workspace_id = ?').run(id);
+    db.prepare('DELETE FROM contacts WHERE workspace_id = ?').run(id);
+    db.prepare('DELETE FROM outreach WHERE workspace_id = ?').run(id);
+    db.prepare('DELETE FROM activities WHERE workspace_id = ?').run(id);
+    db.prepare('DELETE FROM api_usage WHERE workspace_id = ?').run(id);
+    db.prepare('DELETE FROM integrations WHERE workspace_id = ?').run(id);
+    db.prepare('DELETE FROM workspaces WHERE id = ?').run(id);
+  });
+  deleteAll(req.params.id);
   res.json({ success: true });
 });
 
