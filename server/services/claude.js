@@ -130,7 +130,7 @@ async function generateConfig(companyData, workspaceId) {
   const userPrompt = buildUserPrompt(companyData);
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 8000,
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: userPrompt }]
@@ -171,7 +171,7 @@ Proof Points: ${workspaceConfig.selling_points?.map(s => s.proof).join('; ')}
 Write a compelling, personalized message. Return JSON: { "subject": string, "body": string }`;
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 1000,
     messages: [{ role: 'user', content: prompt }]
   });
@@ -185,7 +185,7 @@ async function researchAccount(workspaceConfig, accountName) {
   const prompt = `Research the company "${accountName}" and provide sales intelligence for a sales rep at ${workspaceConfig.company?.name}. Return JSON: { "summary": string, "key_people": [{ "name": string, "title": string }], "recent_news": [string], "pain_points": [string], "recommended_approach": string }`;
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 1500,
     messages: [{ role: 'user', content: prompt }]
   });
@@ -202,7 +202,7 @@ Document content:
 ${content.substring(0, 10000)}`;
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 2000,
     messages: [{ role: 'user', content: prompt }]
   });
